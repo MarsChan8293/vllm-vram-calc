@@ -3,6 +3,7 @@ export const GPU_PRESETS = {
     { name: 'RTX 4070 Ti', vram: 12.9 },
     { name: 'RTX 4080', vram: 17.2 },
     { name: 'RTX 4090', vram: 25.8 },
+    { name: 'RTX 5090 (32GB)', vram: 32 },
   ],
   professional: [
     { name: 'RTX 6000 Ada', vram: 51.5 },
@@ -13,6 +14,7 @@ export const GPU_PRESETS = {
     { name: 'A100 (80GB)', vram: 85.9 },
     { name: 'H100 (80GB)', vram: 85.9 },
     { name: 'H200 (141GB)', vram: 150.5 },
+    { name: 'NPU 910B (64GB)', vram: 64.0 },
   ],
 };
 
