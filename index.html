@@ -1924,6 +1924,10 @@
       updateAttentionTypeUI();
     });
 
+    // Event listeners for kv_lora_rank input
+    inputs.kvLoraRank.addEventListener('input', calculate);
+    inputs.kvLoraRank.addEventListener('change', calculate);
+
     function formatBytes(gb) {
       if (gb >= 1) return gb.toFixed(2) + ' GB';
       return (gb * 1024).toFixed(0) + ' MB';
