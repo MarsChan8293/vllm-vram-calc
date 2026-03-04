@@ -1641,6 +1641,18 @@
         }
       }
 
+      // Apply attention type detection
+      if (modelConfig.attentionType) {
+        detectedAttentionType = modelConfig.attentionType;
+        extractedKvLoraRank = modelConfig.kvLoraRank;
+
+        // Update UI hint
+        updateAttentionTypeUI();
+
+        console.log(`Detected attention type: ${modelConfig.attentionType}`,
+                    modelConfig.kvLoraRank ? `(kv_lora_rank=${modelConfig.kvLoraRank})` : '');
+      }
+
       // Update quant estimate
       calculateQuantEstimate();
 
@@ -1650,6 +1662,11 @@
 
     async function handleFetchClick() {
       const modelId = hfModelId.value.trim();
+
+      // Reset detection state before fetch to prevent stale data from previous model
+      detectedAttentionType = null;
+      extractedKvLoraRank = null;
+      updateAttentionTypeUI(); // Clear UI immediately
 
       // Check cache first
       const cached = getCachedModel(modelId);
@@ -1727,6 +1744,11 @@
           modelInfoCard.remove();
           modelInfoCard = null;
         }
+
+        // Reset detection UI on error
+        detectedAttentionType = null;
+        extractedKvLoraRank = null;
+        updateAttentionTypeUI();
       } finally {
         hfFetchBtn.disabled = false;
         btnText.style.display = 'block';
