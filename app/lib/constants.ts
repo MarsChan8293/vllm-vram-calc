@@ -15,6 +15,7 @@ export const GPU_PRESETS = {
     { name: 'H100 (80GB)', vram: 85.9 },
     { name: 'H200 (141GB)', vram: 150.5 },
     { name: 'NPU 910B (64GB)', vram: 64.0 },
+    { name: 'NPU 910C (128GB)', vram: 128.0 },
   ],
 };
 
