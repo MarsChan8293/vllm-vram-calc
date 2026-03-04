@@ -1970,11 +1970,23 @@
       const overheadNotes = document.getElementById('overhead-notes');
       overheadNotes.textContent = `${formatNumber(activationTokens)} tokens × ${formatNumber(hiddenSizePerGpu)} hidden × ${activationDtypeBytes} bytes × 2 buffers`;
       
-      // KV cache calculation
-      // Per token per layer: 2 (K+V) * kvHeads * headDim * dtype_bytes
-      // With TP, KV heads are split across GPUs
-      const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
-      const bytesPerTokenPerLayer = 2 * kvHeadsPerGpu * headDim * kvCacheDtypeBytes;
+      // KV cache calculation based on attention architecture
+      const attentionType = getEffectiveAttentionType();
+      let bytesPerTokenPerLayer;
+
+      if (attentionType === 'mla') {
+        // MLA (Multi-head Latent Attention): Store compressed latent vectors
+        // Per token per layer: 2 (K+V) * kv_lora_rank * dtype_bytes
+        // Note: MLA doesn't use tensor parallelism for KV cache (latent dim is not split)
+        const kvLoraRank = getEffectiveKvLoraRank();
+        bytesPerTokenPerLayer = 2 * kvLoraRank * kvCacheDtypeBytes;
+      } else {
+        // GQA/MHA: Traditional multi-head attention
+        // Per token per layer: 2 (K+V) * kvHeads * headDim * dtype_bytes
+        // With TP, KV heads are split across GPUs
+        const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
+        bytesPerTokenPerLayer = 2 * kvHeadsPerGpu * headDim * kvCacheDtypeBytes;
+      }
       const bytesPerToken = bytesPerTokenPerLayer * numLayers;
       const bytesPerTokenKB = bytesPerToken / 1024;
       
@@ -2128,6 +2140,25 @@
       document.getElementById('max-context-single').textContent = formatNumber(maxContextSingle);
       document.getElementById('avg-context-all').textContent = formatNumber(avgContextAll);
       document.getElementById('recommended-seqs').textContent = recommendedSeqs;
+
+      // Add MLA mode indicator if applicable
+      const mlaIndicator = document.getElementById('mla-mode-indicator');
+      if (attentionType === 'mla') {
+        const kvLoraRank = getEffectiveKvLoraRank();
+        if (!mlaIndicator) {
+          const indicator = document.createElement('div');
+          indicator.id = 'mla-mode-indicator';
+          indicator.className = 'hint';
+          indicator.style.cssText = 'margin-top: 0.5rem; color: var(--accent-blue);';
+          indicator.innerHTML = `💡 MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
+          document.getElementById('kv-available').parentElement.after(indicator);
+        } else {
+          mlaIndicator.innerHTML = `💡 MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
+          mlaIndicator.style.display = 'block';
+        }
+      } else if (mlaIndicator) {
+        mlaIndicator.style.display = 'none';
+      }
 
       // Update status
       const statusContainer = document.getElementById('status-container');
