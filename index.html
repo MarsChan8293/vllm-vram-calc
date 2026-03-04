@@ -1408,6 +1408,8 @@
         maxContext: null,
         weightsGB: null,
         quantization: null,
+        attentionType: null,  // 'mha' | 'gqa' | 'mla'
+        kvLoraRank: null,     // For MLA models
         tags: modelInfo.tags || []
       };
 
@@ -1471,6 +1473,54 @@
 
       // Estimate weights
       result.weightsGB = estimateModelWeights(modelInfo, config);
+
+      // Attention architecture detection
+      if (config?.attention_type) {
+        const type = config.attention_type.toLowerCase();
+        if (type === 'mla' || type === 'multi-head-latent-attention') {
+          result.attentionType = 'mla';
+        } else if (type === 'gqa' || type === 'grouped-query-attention') {
+          result.attentionType = 'gqa';
+        } else if (type === 'mha' || type === 'multi-head-attention') {
+          result.attentionType = 'mha';
+        }
+      }
+
+      // Detect MLA from architecture names
+      if (!result.attentionType && config?.architectures) {
+        for (const arch of config.architectures) {
+          const archLower = arch.toLowerCase();
+          if (/deepseekv[23]forcausallm/.test(archLower)) {
+            result.attentionType = 'mla';
+            break;
+          }
+          if (archLower.includes('mla')) {
+            result.attentionType = 'mla';
+            break;
+          }
+        }
+      }
+
+      // Extract kv_lora_rank for MLA
+      if (result.attentionType === 'mla') {
+        const rankFields = ['kv_lora_rank', 'kv_compression_dim', 'compressed_kv_dim', 'kv_latent_dim'];
+        for (const field of rankFields) {
+          if (config[field] && Number.isFinite(config[field])) {
+            result.kvLoraRank = config[field];
+            break;
+          }
+        }
+
+        // If not found in config, try to infer from model name
+        if (!result.kvLoraRank && result.name) {
+          const nameLower = result.name.toLowerCase();
+          if (nameLower.includes('deepseek-v3') || nameLower.includes('deepseekv3')) {
+            result.kvLoraRank = 1536;
+          } else if (nameLower.includes('deepseek-v2') || nameLower.includes('deepseekv2')) {
+            result.kvLoraRank = 512;
+          }
+        }
+      }
 
       return result;
     }
