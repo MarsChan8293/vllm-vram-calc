@@ -1854,7 +1854,11 @@
           if (detectedAttentionType === 'mla') {
             kvLoraRankGroup.style.display = 'block';
             if (extractedKvLoraRank) {
-              inputs.kvLoraRank.value = extractedKvLoraRank;
+              // Only update if value hasn't been manually changed (is default or empty)
+              const currentValue = parseInt(inputs.kvLoraRank.value, 10);
+              if (!currentValue || currentValue === 1536) {
+                inputs.kvLoraRank.value = extractedKvLoraRank;
+              }
               hint.textContent += `, latent_dim=${extractedKvLoraRank}`;
             }
           } else {
@@ -1896,8 +1900,8 @@
         return null;
       }
       
-      // Use extracted value if available
-      if (extractedKvLoraRank) {
+      // Use extracted value if available and valid
+      if (extractedKvLoraRank && extractedKvLoraRank >= 64 && extractedKvLoraRank <= 8192) {
         return extractedKvLoraRank;
       }
       
