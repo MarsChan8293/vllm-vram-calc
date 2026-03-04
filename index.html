@@ -2257,6 +2257,8 @@
           quantBits: quantInputs.bits.value,
           baseParams: quantInputs.baseParams.value,
           groupSize: quantInputs.groupSize.value,
+          attentionType: inputs.attentionType.value,
+          kvLoraRank: inputs.kvLoraRank.value,
           timestamp: Date.now()
         };
 
@@ -2300,6 +2302,8 @@
         if (config.quantBits) quantInputs.bits.value = config.quantBits;
         if (config.baseParams) quantInputs.baseParams.value = config.baseParams;
         if (config.groupSize) quantInputs.groupSize.value = config.groupSize;
+        if (config.attentionType) inputs.attentionType.value = config.attentionType;
+        if (config.kvLoraRank) inputs.kvLoraRank.value = config.kvLoraRank;
 
         return true;
       } catch (error) {
