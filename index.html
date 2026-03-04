@@ -1814,8 +1814,93 @@
       input.addEventListener('change', calculate);
     });
 
-    // Note: attentionType change handler is redundant since calculate() is already
-    // bound via Object.values(inputs). Task 3 will add MLA-specific UI updates.
+    // Update attention type UI based on selection and detection
+    function updateAttentionTypeUI() {
+      const selector = inputs.attentionType;
+      const hint = document.getElementById('attention-type-detected');
+      const kvLoraRankGroup = document.getElementById('kv-lora-rank-group');
+      const selectedType = selector.value;
+      
+      if (selectedType === 'auto') {
+        // Show detected type or default
+        if (detectedAttentionType) {
+          const modelName = hfModelId.value.split('/').pop() || 'model';
+          hint.textContent = `Detected: ${detectedAttentionType.toUpperCase()} (${modelName})`;
+          hint.className = 'hint success';
+          
+          // Show kv_lora_rank input if MLA detected
+          if (detectedAttentionType === 'mla') {
+            kvLoraRankGroup.style.display = 'block';
+            if (extractedKvLoraRank) {
+              inputs.kvLoraRank.value = extractedKvLoraRank;
+              hint.textContent += `, latent_dim=${extractedKvLoraRank}`;
+            }
+          } else {
+            kvLoraRankGroup.style.display = 'none';
+          }
+        } else {
+          hint.textContent = 'Could not detect, using default: GQA';
+          hint.className = 'hint warning';
+          kvLoraRankGroup.style.display = 'none';
+        }
+      } else {
+        // Manual selection
+        hint.textContent = `Manually set to: ${selectedType.toUpperCase()}`;
+        hint.className = 'hint';
+        
+        // Show kv_lora_rank for MLA
+        if (selectedType === 'mla') {
+          kvLoraRankGroup.style.display = 'block';
+        } else {
+          kvLoraRankGroup.style.display = 'none';
+        }
+      }
+    }
+
+    // Get effective attention type (considering auto-detect)
+    function getEffectiveAttentionType() {
+      const selected = inputs.attentionType.value;
+      if (selected !== 'auto') {
+        return selected;
+      }
+      return detectedAttentionType || 'gqa'; // Default to GQA for safety
+    }
+
+    // Get effective kv_lora_rank
+    function getEffectiveKvLoraRank() {
+      const attentionType = getEffectiveAttentionType();
+      
+      if (attentionType !== 'mla') {
+        return null;
+      }
+      
+      // Use extracted value if available
+      if (extractedKvLoraRank) {
+        return extractedKvLoraRank;
+      }
+      
+      // Use user input
+      const userValue = toInt(inputs.kvLoraRank.value, 1536);
+      if (userValue >= 64 && userValue <= 8192) {
+        return userValue;
+      }
+      
+      // Default values for known models
+      const modelId = hfModelId.value.toLowerCase();
+      if (modelId.includes('deepseek-v3') || modelId.includes('deepseekv3')) {
+        return 1536;
+      }
+      if (modelId.includes('deepseek-v2') || modelId.includes('deepseekv2')) {
+        return 512;
+      }
+      
+      return 1536; // Conservative default
+    }
+
+    // Update UI when attention type changes
+    inputs.attentionType.addEventListener('change', () => {
+      updateAttentionTypeUI();
+    });
 
     function formatBytes(gb) {
       if (gb >= 1) return gb.toFixed(2) + ' GB';
