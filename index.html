@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>vLLM VRAM Calculator</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
       --bg-primary: #0a0a0f;
@@ -73,8 +74,123 @@
       gap: 2rem;
     }
 
+    @media (max-width: 1200px) {
+      .container {
+        padding: 1.5rem;
+      }
+    }
+
     @media (max-width: 1000px) {
       .grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+
+      .panel {
+        padding: 1.25rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+      }
+
+      .panel {
+        padding: 1rem;
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .panel-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+      }
+
+      .panel-title {
+        font-size: 1rem;
+      }
+
+      .panel-icon {
+        width: 28px;
+        height: 28px;
+      }
+
+      .presets {
+        gap: 0.4rem;
+      }
+
+      .preset-btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .hf-input-row {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .hf-fetch-btn {
+        width: 100%;
+        padding: 0.75rem;
+      }
+
+      .breakdown-table th,
+      .breakdown-table td {
+        padding: 0.5rem 0.4rem;
+        font-size: 0.8rem;
+      }
+
+      .memory-legend {
+        gap: 0.5rem;
+      }
+
+      .legend-item {
+        font-size: 0.75rem;
+      }
+
+      .command-output {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .panel {
+        padding: 0.875rem;
+      }
+
+      .result-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+      }
+
+      .model-info-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -84,6 +200,12 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .panel:hover {
+      box-shadow: 0 6px 32px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
     }
 
     .panel-header {
@@ -255,11 +377,57 @@
       position: relative;
     }
 
-    .memory-segment.weights { background: var(--accent-blue); }
-    .memory-segment.kv-cache { background: var(--accent-purple); }
-    .memory-segment.cuda-graphs { background: var(--accent-yellow); }
-    .memory-segment.overhead { background: var(--accent-red); opacity: 0.7; }
-    .memory-segment.free { background: var(--accent-green); opacity: 0.3; }
+    .memory-segment.weights { background: var(--accent-blue); cursor: pointer; }
+    .memory-segment.kv-cache { background: var(--accent-purple); cursor: pointer; }
+    .memory-segment.cuda-graphs { background: var(--accent-yellow); cursor: pointer; }
+    .memory-segment.overhead { background: var(--accent-red); opacity: 0.7; cursor: pointer; }
+    .memory-segment.free { background: var(--accent-green); opacity: 0.3; cursor: default; }
+
+    /* Memory Bar Tooltip */
+    .memory-segment {
+      position: relative;
+    }
+
+    .memory-segment::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 10px;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .memory-segment::after {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 3px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--bg-tertiary);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      z-index: 100;
+    }
+
+    .memory-segment:hover::before,
+    .memory-segment:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
 
     .memory-legend {
       display: flex;
@@ -600,76 +768,35 @@
       white-space: nowrap;
     }
 
-    /* Quantization Estimate Card */
-    .quant-estimate-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 1rem;
+    /* Collapsible Section */
+    .section-divider.collapsible {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s ease;
     }
 
-    .quant-estimate-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .quant-icon {
-      font-size: 1rem;
-    }
-
-    .quant-estimate-values {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .quant-estimate-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
-
-    .quant-estimate-item .label {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .quant-estimate-item .value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
+    .section-divider.collapsible:hover span {
       color: var(--text-primary);
     }
 
-    .quant-estimate-item.total .value {
-      color: var(--accent-green);
-      font-weight: 600;
+    .section-divider.collapsible .toggle-icon {
+      transition: transform 0.2s ease;
     }
 
-    .apply-estimate-btn {
-      width: 100%;
-      padding: 0.6rem 1rem;
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
+    .section-divider.collapsible.collapsed .toggle-icon {
+      transform: rotate(-90deg);
     }
 
-    .apply-estimate-btn:hover {
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-      background: rgba(0, 255, 136, 0.05);
+    #quant-section-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      max-height: 500px;
+      opacity: 1;
+    }
+
+    #quant-section-content.collapsed {
+      max-height: 0;
+      opacity: 0;
     }
 
     /* MoE specific styling */
@@ -766,7 +893,7 @@
         <!-- GPU Configuration -->
         <div class="panel" role="region" aria-labelledby="gpu-config-title">
           <div class="panel-header">
-            <div class="panel-icon gpu" aria-hidden="true">🖥</div>
+            <div class="panel-icon gpu" aria-hidden="true"><i data-lucide="monitor" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title" id="gpu-config-title">GPU Configuration</h2>
           </div>
 
@@ -824,7 +951,7 @@
         <!-- Model Configuration -->
         <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="model-config-title">
           <div class="panel-header">
-            <div class="panel-icon model" aria-hidden="true">🧠</div>
+            <div class="panel-icon model" aria-hidden="true"><i data-lucide="brain" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title" id="model-config-title">Model Configuration</h2>
           </div>
 
@@ -906,70 +1033,53 @@
           </div>
 
           <!-- Quantization Configuration -->
-          <div class="section-divider">
+          <div class="section-divider collapsible" id="quant-toggle" style="cursor: pointer; user-select: none;">
             <span>Quantization Settings</span>
+            <i data-lucide="chevron-down" class="toggle-icon" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
           </div>
 
-          <div class="input-row">
-            <div class="form-group">
-              <label for="quant-method">Weight Quantization</label>
-              <select id="quant-method">
-                <option value="none">None (FP16/BF16)</option>
-                <option value="fp8">FP8 (8-bit float)</option>
-                <option value="mxfp4" selected>MXFP4 (4-bit MX)</option>
-                <option value="awq">AWQ (4-bit)</option>
-                <option value="gptq">GPTQ (4-bit)</option>
-                <option value="bnb-nf4">BitsAndBytes NF4</option>
-                <option value="bnb-int8">BitsAndBytes INT8</option>
-                <option value="exl2">EXL2 (variable)</option>
-                <option value="gguf">GGUF (variable)</option>
-              </select>
+          <div id="quant-section-content">
+            <div class="input-row">
+              <div class="form-group">
+                <label for="quant-method">Weight Quantization</label>
+                <select id="quant-method">
+                  <option value="none">None (FP16/BF16)</option>
+                  <option value="fp8">FP8 (8-bit float)</option>
+                  <option value="mxfp4" selected>MXFP4 (4-bit MX)</option>
+                  <option value="awq">AWQ (4-bit)</option>
+                  <option value="gptq">GPTQ (4-bit)</option>
+                  <option value="bnb-nf4">BitsAndBytes NF4</option>
+                  <option value="bnb-int8">BitsAndBytes INT8</option>
+                  <option value="exl2">EXL2 (variable)</option>
+                  <option value="gguf">GGUF (variable)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="quant-bits">Effective Bits</label>
+                <input type="number" id="quant-bits" value="4" min="1" max="16" step="0.5">
+                <p class="hint">Bits per weight parameter</p>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="quant-bits">Effective Bits</label>
-              <input type="number" id="quant-bits" value="4" min="1" max="16" step="0.5">
-              <p class="hint">Bits per weight parameter</p>
-            </div>
-          </div>
 
-          <div class="input-row">
-            <div class="form-group">
-              <label for="base-params">Base Model Params (B)</label>
-              <input type="number" id="base-params" value="60" min="0.1" max="1000" step="0.1">
-              <p class="hint">Unquantized parameter count</p>
+            <div class="input-row">
+              <div class="form-group">
+                <label for="base-params">Base Model Params (B)</label>
+                <input type="number" id="base-params" value="60" min="0.1" max="1000" step="0.1">
+                <p class="hint">Unquantized parameter count</p>
+              </div>
+              <div class="form-group">
+                <label for="quant-group-size">Group Size</label>
+                <select id="quant-group-size">
+                  <option value="0">N/A (per-tensor)</option>
+                  <option value="32">32 (block-wise)</option>
+                  <option value="64">64</option>
+                  <option value="128" selected>128 (common)</option>
+                  <option value="256">256</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="quant-group-size">Group Size</label>
-              <select id="quant-group-size">
-                <option value="0">N/A (per-tensor)</option>
-                <option value="32">32 (block-wise)</option>
-                <option value="64">64</option>
-                <option value="128" selected>128 (common)</option>
-                <option value="256">256</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="quant-estimate-card" id="quant-estimate-card">
-            <div class="quant-estimate-header">
-              <span class="quant-icon">📦</span>
-              <span>Estimated Model Size</span>
-            </div>
-            <div class="quant-estimate-values">
-              <div class="quant-estimate-item">
-                <span class="label">Weights</span>
-                <span class="value" id="est-weights">-</span>
-              </div>
-              <div class="quant-estimate-item">
-                <span class="label">Scales/Zeros</span>
-                <span class="value" id="est-scales">-</span>
-              </div>
-              <div class="quant-estimate-item total">
-                <span class="label">Total</span>
-                <span class="value" id="est-total">-</span>
-              </div>
-            </div>
-            <button class="apply-estimate-btn" id="apply-estimate-btn">Apply Estimate →</button>
+
           </div>
         </div>
 
@@ -980,7 +1090,7 @@
         <!-- vLLM Configuration -->
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-icon config">⚙</div>
+            <div class="panel-icon config"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title">vLLM Configuration</h2>
           </div>
 
@@ -1044,7 +1154,7 @@
 
         <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="memory-breakdown-title">
           <div class="panel-header">
-            <div class="panel-icon result" aria-hidden="true">📊</div>
+            <div class="panel-icon result" aria-hidden="true"><i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title" id="memory-breakdown-title">Memory Breakdown (Per GPU)</h2>
           </div>
 
@@ -1083,7 +1193,7 @@
         <!-- Capacity Analysis -->
         <div class="panel" style="margin-top: 1.5rem;">
           <div class="panel-header">
-            <div class="panel-icon config">📈</div>
+            <div class="panel-icon config"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title">Capacity Analysis</h2>
           </div>
 
@@ -1146,10 +1256,13 @@
         <!-- Generated Command -->
         <div class="panel" style="margin-top: 1.5rem;">
           <div class="panel-header">
-            <div class="panel-icon model">💻</div>
+            <div class="panel-icon model"><i data-lucide="terminal" style="width: 20px; height: 20px;"></i></div>
             <h2 class="panel-title">Generated vLLM Command</h2>
           </div>
-          <div class="command-output" id="command-output">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span class="hint"><i data-lucide="copy" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Click to copy command</span>
+          </div>
+          <div class="command-output" id="command-output" style="cursor: pointer; position: relative;" onclick="copyCommandToClipboard()">
             <!-- Filled by JS -->
           </div>
         </div>
@@ -1158,6 +1271,9 @@
   </div>
 
   <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
     // DOM Elements
     const inputs = {
       gpuVram: document.getElementById('gpu-vram'),
@@ -1191,51 +1307,6 @@
       baseParams: document.getElementById('base-params'),
       groupSize: document.getElementById('quant-group-size')
     };
-
-    const applyEstimateBtn = document.getElementById('apply-estimate-btn');
-
-    // Quantization method presets
-    const quantPresets = {
-      'none': { bits: 16, hasScales: false },
-      'fp8': { bits: 8, hasScales: false },
-      'mxfp4': { bits: 4, hasScales: true, scaleOverhead: 0.125 },
-      'awq': { bits: 4, hasScales: true, scaleOverhead: 0.1 },
-      'gptq': { bits: 4, hasScales: true, scaleOverhead: 0.1 },
-      'bnb-nf4': { bits: 4, hasScales: true, scaleOverhead: 0.125 },
-      'bnb-int8': { bits: 8, hasScales: true, scaleOverhead: 0.0625 },
-      'exl2': { bits: 4, hasScales: true, scaleOverhead: 0.15 },
-      'gguf': { bits: 4, hasScales: true, scaleOverhead: 0.1 }
-    };
-
-    function calculateQuantEstimate() {
-      const method = quantInputs.method.value;
-      const bits = parseFloat(quantInputs.bits.value);
-      const baseParams = parseFloat(quantInputs.baseParams.value) * 1e9;
-      const groupSize = parseInt(quantInputs.groupSize.value);
-      const preset = quantPresets[method];
-
-      // Use decimal GB (1e9) for consistency with main calculation
-      const weightBytes = baseParams * (bits / 8);
-      const weightGB = weightBytes / 1e9;
-
-      let scaleGB = 0;
-      if (preset?.hasScales && groupSize > 0) {
-        const numGroups = baseParams / groupSize;
-        const scaleBytes = numGroups * 2;
-        const zeroBytes = method.includes('awq') || method.includes('gptq') ? numGroups * 2 : 0;
-        scaleGB = (scaleBytes + zeroBytes) / 1e9;
-      } else if (preset?.scaleOverhead) {
-        scaleGB = weightGB * preset.scaleOverhead;
-      }
-
-      const totalGB = weightGB + scaleGB;
-
-      document.getElementById('est-weights').textContent = weightGB.toFixed(2) + ' GB';
-      document.getElementById('est-scales').textContent = scaleGB.toFixed(2) + ' GB';
-      document.getElementById('est-total').textContent = totalGB.toFixed(2) + ' GB';
-
-      return totalGB;
-    }
 
     // HuggingFace Integration
     const hfModelId = document.getElementById('hf-model-id');
@@ -1535,7 +1606,7 @@
       card.className = 'model-info-card';
       card.innerHTML = `
         <div class="model-info-header">
-          <span class="model-info-icon">🤗</span>
+          <span class="model-info-icon"><i data-lucide="download-cloud" style="width: 24px; height: 24px;"></i></span>
           <div>
             <div class="model-info-name">${modelConfig.name}</div>
             <div class="model-info-author">by ${modelConfig.author}</div>
@@ -1582,6 +1653,9 @@
       const hfFormGroup = hfModelId.closest('.form-group');
       hfFormGroup.after(card);
       modelInfoCard = card;
+      
+      // Initialize Lucide icons for the new card
+      lucide.createIcons();
     }
 
     function applyModelConfig(modelConfig) {
@@ -1624,9 +1698,12 @@
         quantInputs.method.value = mappedQuant;
         
         // Set bits based on quant method
-        const preset = quantPresets[mappedQuant];
-        if (preset) {
-          quantInputs.bits.value = preset.bits;
+        const bitsMap = {
+          'none': 16, 'fp8': 8, 'mxfp4': 4, 'awq': 4, 'gptq': 4,
+          'bnb-nf4': 4, 'bnb-int8': 8, 'exl2': 4, 'gguf': 4
+        };
+        if (bitsMap[mappedQuant]) {
+          quantInputs.bits.value = bitsMap[mappedQuant];
         }
       }
 
@@ -1652,9 +1729,6 @@
         console.log(`Detected attention type: ${modelConfig.attentionType}`,
                     modelConfig.kvLoraRank ? `(kv_lora_rank=${modelConfig.kvLoraRank})` : '');
       }
-
-      // Update quant estimate
-      calculateQuantEstimate();
 
       // Recalculate
       calculate();
@@ -1783,31 +1857,6 @@
         }
       }
     });
-
-    // Update bits when method changes
-    quantInputs.method.addEventListener('change', () => {
-      const preset = quantPresets[quantInputs.method.value];
-      if (preset) {
-        quantInputs.bits.value = preset.bits;
-      }
-      calculateQuantEstimate();
-    });
-
-    // Recalculate estimate when any quant input changes
-    Object.values(quantInputs).forEach(input => {
-      input.addEventListener('input', calculateQuantEstimate);
-      input.addEventListener('change', calculateQuantEstimate);
-    });
-
-    // Apply estimate to model weights
-    applyEstimateBtn.addEventListener('click', () => {
-      const estimate = calculateQuantEstimate();
-      inputs.modelWeights.value = estimate.toFixed(1);
-      calculate();
-    });
-
-    // Initial quant estimate
-    calculateQuantEstimate();
 
     // GPU Preset dropdown
     const gpuPreset = document.getElementById('gpu-preset');
@@ -2091,11 +2140,11 @@
       const freePercent = gpuVram > 0 ? (freeSpace / gpuVram) * 100 : 0;
 
       memoryBar.innerHTML = `
-        <div class="memory-segment weights" style="width: ${weightsPercent}%"></div>
-        <div class="memory-segment kv-cache" style="width: ${kvPercent}%"></div>
-        <div class="memory-segment cuda-graphs" style="width: ${cudaPercent}%"></div>
-        <div class="memory-segment overhead" style="width: ${overheadPercent}%"></div>
-        <div class="memory-segment free" style="width: ${freePercent}%"></div>
+        <div class="memory-segment weights" style="width: ${weightsPercent}%" data-tooltip="Weights: ${formatBytes(weightsPerGpu)} (${weightsPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment kv-cache" style="width: ${kvPercent}%" data-tooltip="KV Cache: ${formatBytes(kvCacheAllocated)} (${kvPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment cuda-graphs" style="width: ${cudaPercent}%" data-tooltip="CUDA Graphs: ${formatBytes(cudaGraphsSize)} (${cudaPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment overhead" style="width: ${overheadPercent}%" data-tooltip="Overhead: ${formatBytes(totalOverhead)} (${overheadPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment free" style="width: ${freePercent}%" data-tooltip="Free: ${formatBytes(freeSpace)} (${freePercent.toFixed(1)}%)"></div>
       `;
 
       document.getElementById('memory-percent').textContent = usagePercent.toFixed(1) + '%';
@@ -2148,17 +2197,17 @@
       if (requiredTokens > maxTokensInCache) {
         kvStatusClass = 'error';
         const shortage = requiredTokens - maxTokensInCache;
-        kvStatusText = `⚠ Insufficient KV Cache: Need ${formatNumber(shortage)} more tokens. Reduce max-model-len or max-num-seqs`;
+        kvStatusText = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Insufficient KV Cache: Need ${formatNumber(shortage)} more tokens. Reduce max-model-len or max-num-seqs`;
       } else if (kvUtilization > 90) {
         kvStatusClass = 'warning';
-        kvStatusText = `⚡ KV Cache is ${kvUtilization.toFixed(0)}% utilized - very tight, may cause issues under load`;
+        kvStatusText = `<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache is ${kvUtilization.toFixed(0)}% utilized - very tight, may cause issues under load`;
       } else if (kvUtilization > 70) {
         kvStatusClass = 'warning';
-        kvStatusText = `✓ KV Cache is ${kvUtilization.toFixed(0)}% utilized - acceptable but monitor usage`;
+        kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache is ${kvUtilization.toFixed(0)}% utilized - acceptable but monitor usage`;
       } else {
         kvStatusClass = 'ok';
         const headroom = maxTokensInCache - requiredTokens;
-        kvStatusText = `✓ Good headroom: ${formatNumber(headroom)} tokens available beyond requirements`;
+        kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Good headroom: ${formatNumber(headroom)} tokens available beyond requirements`;
       }
 
       kvComparisonStatus.innerHTML = `<div class="status-badge ${kvStatusClass}" style="margin-top: 1rem; width: 100%;">${kvStatusText}</div>`;
@@ -2180,10 +2229,10 @@
           indicator.id = 'mla-mode-indicator';
           indicator.className = 'hint';
           indicator.style.cssText = 'margin-top: 0.5rem; color: var(--accent-blue);';
-          indicator.innerHTML = `💡 MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
+          indicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
           document.getElementById('kv-available').parentElement.after(indicator);
         } else {
-          mlaIndicator.innerHTML = `💡 MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
+          mlaIndicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
           mlaIndicator.style.display = 'block';
         }
       } else if (mlaIndicator) {
@@ -2196,13 +2245,13 @@
 
       if (totalUsage > availableVram) {
         statusClass = 'error';
-        statusText = '⚠ OOM Risk: Reduce context, seqs, or enable FP8 KV cache';
+        statusText = '<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> OOM Risk: Reduce context, seqs, or enable FP8 KV cache';
       } else if (totalUsage > availableVram * 0.95) {
         statusClass = 'warning';
-        statusText = '⚡ Tight: May OOM under load. Consider reducing max-num-seqs';
+        statusText = '<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Tight: May OOM under load. Consider reducing max-num-seqs';
       } else {
         statusClass = 'ok';
-        statusText = '✓ Configuration looks good';
+        statusText = '<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Configuration looks good';
       }
 
       // Calculate GiB values for vLLM comparison (1 GB decimal = 0.931323 GiB binary)
@@ -2212,7 +2261,7 @@
       statusContainer.innerHTML = `
         <div class="status-badge ${statusClass}">${statusText}</div>
         <p class="hint" style="margin-top: 1rem; text-align: center;">
-          💡 vLLM comparison: Available ${availableVramGiB.toFixed(2)} GiB (binary) • KV cache ${kvAvailableGiB.toFixed(2)} GiB
+          <i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> vLLM comparison: Available ${availableVramGiB.toFixed(2)} GiB (binary) • KV cache ${kvAvailableGiB.toFixed(2)} GiB
         </p>
       `;
 
@@ -2235,6 +2284,103 @@
       }
 
       commandOutput.innerHTML = command;
+      
+      // Reinitialize Lucide icons for dynamic content
+      lucide.createIcons();
+    }
+
+    // ============================================================================
+    // COPY COMMAND TO CLIPBOARD
+    // ============================================================================
+    function copyCommandToClipboard() {
+      const commandOutput = document.getElementById('command-output');
+      const html = commandOutput.innerHTML;
+      
+      // Extract text content from HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
+      
+      // Copy to clipboard
+      navigator.clipboard.writeText(plainText.trim()).then(() => {
+        // Show success feedback
+        const originalCursor = commandOutput.style.cursor;
+        const originalBg = commandOutput.style.background;
+        commandOutput.style.cursor = 'default';
+        commandOutput.style.background = 'rgba(0, 255, 136, 0.1)';
+        
+        // Show toast notification
+        showToast('Command copied to clipboard!', 'success');
+        
+        setTimeout(() => {
+          commandOutput.style.cursor = originalCursor;
+          commandOutput.style.background = originalBg;
+        }, 1000);
+      }).catch(err => {
+        console.error('Failed to copy command:', err);
+        showToast('Failed to copy command', 'error');
+      });
+    }
+
+    // ============================================================================
+    // TOAST NOTIFICATION SYSTEM
+    // ============================================================================
+    function showToast(message, type = 'success') {
+      // Remove existing toast if any
+      const existingToast = document.getElementById('toast-notification');
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
+      const toast = document.createElement('div');
+      toast.id = 'toast-notification';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      `;
+      
+      if (type === 'success') {
+        toast.style.background = 'rgba(0, 255, 136, 0.15)';
+        toast.style.color = 'var(--accent-green)';
+        toast.style.border = '1px solid rgba(0, 255, 136, 0.3)';
+      } else {
+        toast.style.background = 'rgba(255, 68, 102, 0.15)';
+        toast.style.color = 'var(--accent-red)';
+        toast.style.border = '1px solid rgba(255, 68, 102, 0.3)';
+      }
+      
+      const iconName = type === 'success' ? 'check-circle' : 'alert-circle';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>${message}`;
+      
+      document.body.appendChild(toast);
+      lucide.createIcons();
+      
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
     // ============================================================================
@@ -2335,6 +2481,30 @@
     });
 
     // ============================================================================
+    // COLLAPSIBLE SECTIONS
+    // ============================================================================
+    
+    // Quantization section toggle
+    const quantToggle = document.getElementById('quant-toggle');
+    const quantContent = document.getElementById('quant-section-content');
+    const QUANT_COLLAPSE_KEY = 'vllm_calc_quant_collapsed';
+    
+    if (quantToggle && quantContent) {
+      // Restore collapsed state from localStorage
+      const isCollapsed = localStorage.getItem(QUANT_COLLAPSE_KEY) === 'true';
+      if (isCollapsed) {
+        quantToggle.classList.add('collapsed');
+        quantContent.classList.add('collapsed');
+      }
+      
+      quantToggle.addEventListener('click', () => {
+        const nowCollapsed = quantContent.classList.toggle('collapsed');
+        quantToggle.classList.toggle('collapsed', nowCollapsed);
+        localStorage.setItem(QUANT_COLLAPSE_KEY, nowCollapsed);
+      });
+    }
+
+    // ============================================================================
     // INITIAL SETUP
     // ============================================================================
 
@@ -2343,6 +2513,9 @@
 
     // Initial calculation (after restoring config)
     calculate();
+
+    // Initialize all Lucide icons after page load
+    lucide.createIcons();
   </script>
 </body>
 </html>
