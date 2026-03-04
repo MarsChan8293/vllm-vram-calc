@@ -96,6 +96,21 @@ const zeroBytes = numGroups * 2;   // For asymmetric quantization
 
 **Note**: Different quantization methods have different overhead patterns.
 
+### MLA (Multi-head Latent Attention) Models
+
+MLA models like DeepSeek-V2/V3 use compressed latent vectors instead of traditional K/V matrices:
+
+```javascript
+// MLA: 2 (K+V) × kv_lora_rank × dtype_bytes per layer per token
+const bytesPerTokenPerLayer = 2 * kvLoraRank * kvCacheDtypeBytes;
+```
+
+**Detection**:
+- From config.json: `attention_type: "mla"` or architecture name matching
+- Default kv_lora_rank values: DeepSeek-V3 (1536), DeepSeek-V2 (512)
+
+**Important**: MLA KV cache is NOT split by tensor parallelism (latent dimension is shared across GPUs).
+
 ### Memory Availability
 ```javascript
 const availableVram = gpuVram * gpuUtilization;  // Per GPU
