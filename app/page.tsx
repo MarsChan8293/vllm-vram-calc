@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import GPUConfigComponent from './components/GPUConfig';
-import { calculateVRAM, debounce } from './lib/calculations';
+import { calculateVRAM, createDebouncedConfigSaver } from './lib/calculations';
 import { saveConfiguration, loadConfiguration } from './lib/storage';
 import {
   DEFAULT_GPU_CONFIG,
@@ -44,13 +44,11 @@ export default function Home() {
 
   // Debounced save
   const debouncedSave = useRef(
-    debounce(() => {
-      saveConfiguration(gpuConfig, modelConfig, quantConfig, vllmConfig);
-    }, 2000)
+    createDebouncedConfigSaver(saveConfiguration, 2000)
   ).current;
 
   useEffect(() => {
-    debouncedSave();
+    debouncedSave(gpuConfig, modelConfig, quantConfig, vllmConfig);
   }, [gpuConfig, modelConfig, quantConfig, vllmConfig, debouncedSave]);
 
   return (

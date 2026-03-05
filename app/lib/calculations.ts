@@ -1,6 +1,8 @@
 import type { GPUConfig, ModelConfig, QuantizationConfig, VLLMConfig, CalculationResult } from './types';
 
 const DECIMAL_GB = 1_000_000_000;
+const DEFAULT_DTYPE_BYTES = 2;
+const CUDA_GRAPH_MULTIPLIER = 10;
 
 export function calculateVRAM(
   gpu: GPUConfig,
@@ -17,14 +19,18 @@ export function calculateVRAM(
   const numLayers = model.numLayers;
   const kvHeads = model.kvHeads;
   const headDim = model.headDim;
+  const attnHeads = Math.max(model.attnHeads || kvHeads, kvHeads);
 
   const maxModelLen = vllm.maxModelLen;
   const maxNumSeqs = vllm.maxNumSeqs;
   const maxBatchedTokens = vllm.maxBatchedTokens;
 
-  const kvCacheDtypeBytes = vllm.kvCacheDtype === 'fp8' ? 1 : 2;
+  const kvCacheDtypeBytes = getKVCacheDtypeBytes(vllm.kvCacheDtype);
+  const activationDtypeBytes = getActivationDtypeBytes(vllm.activationDtype);
   const cudaGraphsEnabled = vllm.cudaGraphs;
   const overheadPaddingGB = vllm.overheadPadding;
+  const quantizationOverheadBytes = getQuantizationMetadataBytes(quant, numGpus);
+  const quantizedWeightEstimateGB = getQuantizedWeightEstimateGB(quant);
 
   // Calculate available VRAM per GPU
   const totalVramBytes = gpuVramGB * DECIMAL_GB;
@@ -35,12 +41,20 @@ export function calculateVRAM(
   const weightsPerGpuGB = modelWeightsGB / numGpus;
   const weightsPerGpuBytes = weightsPerGpuGB * DECIMAL_GB;
 
-  // CUDA graphs memory (per GPU)
-  const cudaGraphsGB = cudaGraphsEnabled ? 2.5 : 0;
-  const cudaGraphsBytes = cudaGraphsGB * DECIMAL_GB;
+  // Activation buffers depend on batch shape and activation dtype.
+  const attnHeadsPerGpu = Math.ceil(attnHeads / numGpus);
+  const hiddenSizePerGpu = attnHeadsPerGpu * headDim;
+  const activationTokens = maxBatchedTokens + maxNumSeqs;
+  const activationBytes = activationTokens * hiddenSizePerGpu * activationDtypeBytes;
+  const activationOverheadBytes = activationBytes * 2;
 
-  // Overhead padding
-  const overheadBytes = overheadPaddingGB * DECIMAL_GB;
+  // CUDA graphs memory (per GPU)
+  const cudaGraphsBytes = cudaGraphsEnabled ? activationBytes * CUDA_GRAPH_MULTIPLIER : 0;
+  const cudaGraphsGB = cudaGraphsBytes / DECIMAL_GB;
+
+  // Extra overhead = activation buffers + manual padding + quantization metadata.
+  const overheadBytes = activationOverheadBytes + (overheadPaddingGB * DECIMAL_GB) + quantizationOverheadBytes;
+  const overheadGB = overheadBytes / DECIMAL_GB;
 
   // Calculate KV cache memory per token
   // With tensor parallelism, KV heads are distributed across GPUs
@@ -62,7 +76,7 @@ export function calculateVRAM(
       availableVramPerGpu: availableVramGB,
       weightsPerGpu: weightsPerGpuGB,
       cudaGraphsMemory: cudaGraphsGB,
-      overheadMemory: overheadPaddingGB,
+      overheadMemory: overheadGB,
       kvBytesPerToken: bytesPerToken,
       kvBytesPerSeq: bytesPerSeq,
       totalKVCacheMemory: 0,
@@ -87,13 +101,13 @@ export function calculateVRAM(
   // Actual concurrent sequences (limited by user's max_num_seqs)
   const actualMaxNumSeqs = Math.min(maxConcurrentSeqs, maxNumSeqs);
 
-  // Total KV cache memory used
-  const totalKVCacheBytes = actualMaxNumSeqs * bytesPerSeq;
+  // vLLM pre-allocates the full KV cache pool at startup.
+  const totalKVCacheBytes = kvAvailableBytes;
   const totalKVCacheGB = totalKVCacheBytes / DECIMAL_GB;
 
   // Free memory
   const usedMemoryBytes = weightsPerGpuBytes + cudaGraphsBytes + overheadBytes + totalKVCacheBytes;
-  const freeMemoryBytes = availableVramBytes - usedMemoryBytes;
+  const freeMemoryBytes = Math.max(0, availableVramBytes - usedMemoryBytes);
   const freeMemoryGB = freeMemoryBytes / DECIMAL_GB;
 
   // Memory usage percentage
@@ -111,14 +125,24 @@ export function calculateVRAM(
       `Consider reducing max_model_len or increasing GPU memory.`
     );
   }
-  if (memoryUsagePercent > 95) {
-    warnings.push('Memory usage is very high (>95%). Consider reducing batch size or context length.');
+  const fixedUsagePercent = ((weightsPerGpuBytes + cudaGraphsBytes + overheadBytes) / availableVramBytes) * 100;
+  if (fixedUsagePercent > 95) {
+    warnings.push('Fixed memory overhead is very high (>95%). Reduce model size or activation settings.');
   }
   if (kvHeadsPerGpu * numGpus > kvHeads) {
     warnings.push(
       `With ${numGpus} GPUs, some GPUs will have ${kvHeadsPerGpu} KV heads while the model has ${kvHeads}. ` +
       `This may cause slight imbalance.`
     );
+  }
+  if (quantizedWeightEstimateGB !== null) {
+    const estimateGap = Math.abs(modelWeightsGB - quantizedWeightEstimateGB) / quantizedWeightEstimateGB;
+    if (estimateGap > 0.2) {
+      warnings.push(
+        `Model weights (${modelWeightsGB.toFixed(2)} GB) differ from ${quant.bits}-bit estimate ` +
+        `(${quantizedWeightEstimateGB.toFixed(2)} GB). Verify quantization inputs.`
+      );
+    }
   }
 
   // Generate vLLM command
@@ -134,7 +158,7 @@ export function calculateVRAM(
     availableVramPerGpu: availableVramGB,
     weightsPerGpu: weightsPerGpuGB,
     cudaGraphsMemory: cudaGraphsGB,
-    overheadMemory: overheadPaddingGB,
+    overheadMemory: overheadGB,
     kvBytesPerToken: bytesPerToken,
     kvBytesPerSeq: bytesPerSeq,
     totalKVCacheMemory: totalKVCacheGB,
@@ -147,6 +171,35 @@ export function calculateVRAM(
     warnings,
     command,
   };
+}
+
+function getKVCacheDtypeBytes(dtype: string): number {
+  if (dtype === 'fp8') return 1;
+  return DEFAULT_DTYPE_BYTES;
+}
+
+function getActivationDtypeBytes(dtype: string): number {
+  if (dtype === 'fp8') return 1;
+  if (dtype === 'float32') return 4;
+  return DEFAULT_DTYPE_BYTES;
+}
+
+function getQuantizationMetadataBytes(quant: QuantizationConfig, numGpus: number): number {
+  if (quant.method === 'none') return 0;
+  if (quant.baseParams <= 0 || quant.groupSize <= 0) return 0;
+  if (numGpus <= 0) return 0;
+
+  const parameterCount = quant.baseParams * DECIMAL_GB;
+  const numGroups = parameterCount / quant.groupSize;
+  const scaleBytes = numGroups * 2;
+  const zeroPointBytes = numGroups * 2;
+
+  return (scaleBytes + zeroPointBytes) / numGpus;
+}
+
+function getQuantizedWeightEstimateGB(quant: QuantizationConfig): number | null {
+  if (quant.baseParams <= 0 || quant.bits <= 0) return null;
+  return quant.baseParams * (quant.bits / 8);
 }
 
 function generateVLLMCommand(params: {
@@ -207,6 +260,23 @@ export function debounce<T extends (...args: any[]) => any>(
     }
     timeout = setTimeout(later, wait);
   };
+}
+
+export function createDebouncedConfigSaver(
+  saveFn: (
+    gpu: GPUConfig,
+    model: ModelConfig,
+    quant: QuantizationConfig,
+    vllm: VLLMConfig
+  ) => void,
+  wait: number
+): (
+  gpu: GPUConfig,
+  model: ModelConfig,
+  quant: QuantizationConfig,
+  vllm: VLLMConfig
+) => void {
+  return debounce(saveFn, wait);
 }
 
 export function formatBytes(bytes: number, decimals: number = 2): string {
