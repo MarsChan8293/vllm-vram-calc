@@ -664,6 +664,66 @@
       color: var(--accent-yellow);
     }
 
+    /* 内置模型快速选择 */
+    .builtin-presets-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .vendor-select-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .vendor-select-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .vendor-label {
+      min-width: 80px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .builtin-model-select {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .builtin-model-select:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .builtin-model-select:focus {
+      outline: none;
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(170, 102, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .vendor-select-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      
+      .vendor-label {
+        min-width: auto;
+      }
+    }
+
     /* Model info card */
     .model-info-card {
       background: var(--bg-secondary);
