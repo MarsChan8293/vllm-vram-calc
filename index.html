@@ -1019,6 +1019,43 @@
             <h2 class="panel-title" id="model-config-title">Model Configuration</h2>
           </div>
 
+          <!-- 内置模型快速选择 -->
+          <div class="form-group builtin-presets-group">
+            <label>
+              快速选择模型
+              <span class="tooltip" data-tooltip="选择后自动填充 Model ID，点击 Fetch 获取参数">
+                <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
+              </span>
+            </label>
+            
+            <div class="vendor-select-row">
+              <span class="vendor-label">DeepSeek</span>
+              <select class="builtin-model-select" id="builtin-deepseek">
+                <option value="">选择模型...</option>
+                <option value="deepseek-ai/DeepSeek-V3.2">DeepSeek-V3.2</option>
+                <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
+              </select>
+            </div>
+            
+            <div class="vendor-select-row">
+              <span class="vendor-label">Qwen</span>
+              <select class="builtin-model-select" id="builtin-qwen">
+                <option value="">选择模型...</option>
+                <option value="Qwen/Qwen3-32B">Qwen3-32B</option>
+                <option value="Qwen/Qwen3-14B">Qwen3-14B</option>
+              </select>
+            </div>
+            
+            <div class="vendor-select-row">
+              <span class="vendor-label">GLM</span>
+              <select class="builtin-model-select" id="builtin-glm">
+                <option value="">选择模型...</option>
+                <option value="zai-org/GLM-5">GLM-5</option>
+                <option value="zai-org/GLM-4.7">GLM-4.7</option>
+              </select>
+            </div>
+          </div>
+
           <!-- HuggingFace Integration -->
           <div class="form-group">
             <label for="hf-model-id">Load from HuggingFace</label>
