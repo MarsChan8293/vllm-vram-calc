@@ -1019,48 +1019,33 @@
             <h2 class="panel-title" id="model-config-title">Model Configuration</h2>
           </div>
 
-          <!-- 内置模型快速选择 -->
-          <div class="form-group builtin-presets-group">
-            <label>
-              快速选择模型
-              <span class="tooltip" data-tooltip="选择后自动填充 Model ID，点击 Fetch 获取参数">
-                <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
-              </span>
-            </label>
-            
-            <div class="vendor-select-row">
-              <span class="vendor-label">DeepSeek</span>
-              <select class="builtin-model-select" id="builtin-deepseek" aria-label="DeepSeek model selection">
-                <option value="">选择模型...</option>
-                <option value="deepseek-ai/DeepSeek-V3.2">DeepSeek-V3.2</option>
-                <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
+          <!-- 统一的模型选择区域 -->
+          <div class="selection-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label for="model-vendor">Vendor</label>
+              <select id="model-vendor" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
+                <option value="DeepSeek">DeepSeek</option>
+                <option value="Meta">Meta (Llama)</option>
+                <option value="Alibaba">Alibaba (Qwen)</option>
+                <option value="Mistral">Mistral</option>
+                <option value="Google">Google (Gemma)</option>
+                <option value="Microsoft">Microsoft (Phi)</option>
+                <option value="Custom">Custom / Other</option>
               </select>
             </div>
-            
-            <div class="vendor-select-row">
-              <span class="vendor-label">Qwen</span>
-              <select class="builtin-model-select" id="builtin-qwen" aria-label="Qwen model selection">
-                <option value="">选择模型...</option>
-                <option value="Qwen/Qwen3-32B">Qwen3-32B</option>
-                <option value="Qwen/Qwen3-14B">Qwen3-14B</option>
-              </select>
-            </div>
-            
-            <div class="vendor-select-row">
-              <span class="vendor-label">GLM</span>
-              <select class="builtin-model-select" id="builtin-glm" aria-label="GLM model selection">
-                <option value="">选择模型...</option>
-                <option value="zai-org/GLM-5">GLM-5</option>
-                <option value="zai-org/GLM-4.7">GLM-4.7</option>
+            <div class="form-group">
+              <label for="model-preset">Preset Model</label>
+              <select id="model-preset" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
+                <!-- 动态填充 -->
               </select>
             </div>
           </div>
 
           <!-- HuggingFace Integration -->
           <div class="form-group">
-            <label for="hf-model-id">Load from HuggingFace</label>
+            <label for="hf-model-id">HuggingFace Model ID</label>
             <div class="hf-input-row">
-              <input type="text" id="hf-model-id" placeholder="e.g. MultiverseComputingCAI/HyperNova-60B"
+              <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3"
                 aria-label="HuggingFace model ID"
                 aria-describedby="hf-status">
               <button class="hf-fetch-btn" id="hf-fetch-btn"
@@ -1073,8 +1058,9 @@
                 </span>
               </button>
             </div>
-            <p class="hint" id="hf-status" role="status" aria-live="polite">Enter a model ID and click Fetch to load config</p>
+            <p class="hint" id="hf-status" role="status" aria-live="polite">Enter ID or select preset and click Fetch</p>
           </div>
+
 
           <div class="input-row">
             <div class="form-group">
@@ -1375,6 +1361,43 @@
     // Initialize Lucide icons
     lucide.createIcons();
 
+    // Built-in Models Data
+    const BUILTIN_MODELS = {
+      'DeepSeek': [
+        { name: 'DeepSeek-V3 (671B)', id: 'deepseek-ai/DeepSeek-V3' },
+        { name: 'DeepSeek-R1 (671B)', id: 'deepseek-ai/DeepSeek-R1' },
+        { name: 'DeepSeek-V2.5 (236B)', id: 'deepseek-ai/DeepSeek-V2.5' },
+        { name: 'DeepSeek-Coder-V2 (236B)', id: 'deepseek-ai/DeepSeek-Coder-V2-Instruct' },
+      ],
+      'Meta': [
+        { name: 'Llama-3.3-70B', id: 'meta-llama/Llama-3.3-70B-Instruct' },
+        { name: 'Llama-3.1-405B', id: 'meta-llama/Llama-3.1-405B-Instruct' },
+        { name: 'Llama-3.1-70B', id: 'meta-llama/Llama-3.1-70B-Instruct' },
+        { name: 'Llama-3.1-8B', id: 'meta-llama/Llama-3.1-8B-Instruct' },
+      ],
+      'Alibaba': [
+        { name: 'Qwen2.5-72B', id: 'Qwen/Qwen2.5-72B-Instruct' },
+        { name: 'Qwen2.5-32B', id: 'Qwen/Qwen2.5-32B-Instruct' },
+        { name: 'Qwen2.5-14B', id: 'Qwen/Qwen2.5-14B-Instruct' },
+        { name: 'Qwen2.5-7B', id: 'Qwen/Qwen2.5-7B-Instruct' },
+      ],
+      'Mistral': [
+        { name: 'Mistral-Large-2 (123B)', id: 'mistralai/Mistral-Large-Instruct-2407' },
+        { name: 'Mixtral-8x22B', id: 'mistralai/Mixtral-8x22B-Instruct-v0.1' },
+        { name: 'Mixtral-8x7B', id: 'mistralai/Mixtral-8x7B-Instruct-v0.1' },
+      ],
+      'Google': [
+        { name: 'Gemma-2-27B', id: 'google/gemma-2-27b-it' },
+        { name: 'Gemma-2-9B', id: 'google/gemma-2-9b-it' },
+        { name: 'Gemma-2-2B', id: 'google/gemma-2-2b-it' },
+      ],
+      'Microsoft': [
+        { name: 'Phi-4 (14B)', id: 'microsoft/phi-4' },
+        { name: 'Phi-3.5-MoE (16x3.8B)', id: 'microsoft/Phi-3.5-MoE-instruct' },
+        { name: 'Phi-3-Mini (3.8B)', id: 'microsoft/Phi-3-mini-128k-instruct' },
+      ],
+    };
+
     // DOM Elements
     const inputs = {
       gpuVram: document.getElementById('gpu-vram'),
@@ -1395,7 +1418,55 @@
       overheadPadding: document.getElementById('overhead-padding'),
       attentionType: document.getElementById('attention-type'),
       kvLoraRank: document.getElementById('kv-lora-rank'),
+      // Model Selection Elements
+      modelVendor: document.getElementById('model-vendor'),
+      modelPreset: document.getElementById('model-preset'),
     };
+
+    // Initialize Model Selection
+    function initModelSelection() {
+      const vendorSelect = inputs.modelVendor;
+      const presetSelect = inputs.modelPreset;
+      const hfInput = document.getElementById('hf-model-id');
+
+      function updatePresets() {
+        const vendor = vendorSelect.value;
+        presetSelect.innerHTML = '';
+        
+        if (vendor === 'Custom') {
+          presetSelect.disabled = true;
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'Enter ID below';
+          presetSelect.appendChild(option);
+          return;
+        }
+
+        presetSelect.disabled = false;
+        const models = BUILTIN_MODELS[vendor] || [];
+        models.forEach(m => {
+          const option = document.createElement('option');
+          option.value = m.id;
+          option.textContent = m.name;
+          presetSelect.appendChild(option);
+        });
+
+        if (models.length > 0) {
+          hfInput.value = models[0].id;
+        }
+      }
+
+      vendorSelect.addEventListener('change', updatePresets);
+      
+      presetSelect.addEventListener('change', () => {
+        hfInput.value = presetSelect.value;
+      });
+
+      // Initial populate
+      updatePresets();
+    }
+
+    initModelSelection();
 
     // Attention type detection state
     let detectedAttentionType = null;
@@ -2493,8 +2564,12 @@
     function saveConfiguration() {
       try {
         const config = {
+          modelVendor: inputs.modelVendor.value,
+          modelPreset: inputs.modelPreset.value,
+          hfModelId: hfModelId.value,
           gpuVram: inputs.gpuVram.value,
           numGpus: inputs.numGpus.value,
+
           gpuUtilization: inputs.gpuUtilization.value,
           modelWeights: inputs.modelWeights.value,
           numLayers: inputs.numLayers.value,
@@ -2538,7 +2613,41 @@
         }
 
         // Restore values
+        if (config.modelVendor) inputs.modelVendor.value = config.modelVendor;
+        
+        // Trigger presets update based on restored vendor
+        const vendorSelect = inputs.modelVendor;
+        const presetSelect = inputs.modelPreset;
+        const hfInput = document.getElementById('hf-model-id');
+        
+        const updatePresets = () => {
+          const vendor = vendorSelect.value;
+          presetSelect.innerHTML = '';
+          if (vendor === 'Custom') {
+            presetSelect.disabled = true;
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Enter ID below';
+            presetSelect.appendChild(option);
+          } else {
+            presetSelect.disabled = false;
+            const models = BUILTIN_MODELS[vendor] || [];
+            models.forEach(m => {
+              const option = document.createElement('option');
+              option.value = m.id;
+              option.textContent = m.name;
+              presetSelect.appendChild(option);
+            });
+          }
+        };
+        
+        updatePresets();
+        
+        if (config.modelPreset) presetSelect.value = config.modelPreset;
+        if (config.hfModelId) hfInput.value = config.hfModelId;
+
         if (config.gpuVram) inputs.gpuVram.value = config.gpuVram;
+
         if (config.numGpus) inputs.numGpus.value = config.numGpus;
         if (config.gpuUtilization) inputs.gpuUtilization.value = config.gpuUtilization;
         if (config.modelWeights) inputs.modelWeights.value = config.modelWeights;
