@@ -28,20 +28,24 @@
   - head 维度
 
 ### 量化支持
-全面的量化估算，支持：
-- **FP16/BF16**（16 位浮点）
-- **FP8**（8 位浮点）
-- **MXFP4**（4 位 MX 格式）
-- **AWQ**（4 位 Activation-aware Weight Quantization）
-- **GPTQ**（4 位 GPT Quantization）
-- **BitsAndBytes**（NF4、INT8）
-- **EXL2**（可变位宽）
-- **GGUF**（可变位宽）
+计算器提供简化的权重量化估算，支持以下精度：
 
-计算器会估算：
-- 基于每参数位数的权重大小
-- 分组量化的 scale / zero-point 开销
-- 含量化元数据的模型总大小
+| 方法 | 字节/参数 | 说明 |
+|------|----------|------|
+| BF16/FP16 | 2 | 默认精度（无量化） |
+| FP8 | 1 | 8 位浮点 |
+| INT8 | 1 | 8 位整数 |
+| INT4 | 0.5 | 4 位整数 |
+| FP4 | 0.5 | 4 位浮点 |
+
+**计算公式**：`模型权重 (GB) = 参数量 (B) × 字节/参数`
+
+**注意**：当前实现为简化估算，未包含量化元数据开销（scale/zero-point 等）。对于 AWQ、GPTQ 等分组量化方法，实际模型大小可能略高于估算值（通常 +3-5%）。
+
+**HuggingFace 标签映射**：从模型标签自动检测量化类型，映射到对应精度：
+- `AWQ`/`GPTQ`/`BNB`/`4BIT` → INT4
+- `MXFP4`/`FP4` → FP4
+- `FP8`/`8BIT` → FP8/INT8
 
 ### vLLM 配置
 可微调的部署参数：
@@ -107,13 +111,12 @@
 #### 手动配置
 1. 从下拉选择 GPU：**RTX 5090 (32GB)**（或手动输入自定义 VRAM）
 2. 设置 GPU 数量（TP 大小）：**2**
-3. 输入模型权重：**36.3 GB**
-4. 配置层数：**32**、KV heads：**8**、head 维度：**64**
-5. 选择量化方法（例如 **MXFP4**）
-6. 配置基准参数（base params）：**60** billion
-7. 点击 “Apply Estimate” 使用计算出的模型大小
-8. 调整 `max-model-len`：**131072** 和 `max-num-seqs`：**8**
-9. 查看容量分析与 vLLM 比对值
+3. 输入模型 ID 或手动配置参数
+4. 输入参数量（B）：**36.3**
+5. 配置层数：**32**、KV heads：**8**、head 维度：**64**
+6. 选择量化方法（例如 **INT4** 或 **FP4**）
+7. 调整 `max-model-len`：**131072** 和 `max-num-seqs`：**8**
+8. 查看容量分析与 vLLM 比对值
 
 ### 输出说明
 
@@ -158,15 +161,9 @@ total_bytes_per_token = bytes_per_token_per_layer × num_layers
 每个 GPU 的内存划分为：
 1. **固定开销**：
    - 模型权重（总量 / GPU 数）
-   - CUDA graphs（启用时约 ~2.5GB）
+   - CUDA graphs（启用时按激活缓冲区 × 10 计算）
    - 框架开销（可配置）
 2. **动态 KV Cache**：在剩余空间内填充，直至达到 `gpu_memory_utilization` 限制
-
-### 量化元数据开销
-分组量化方法（AWQ、GPTQ、MXFP4）会存储额外元数据：
-- **Scale 因子**：每组 2 字节
-- **Zero point**：每组 2 字节（用于非对称量化）
-- **组数**：`num_parameters / group_size`
 
 ## 浏览器兼容性
 
@@ -188,3 +185,92 @@ MIT 许可证 — 详见 LICENSE 文件
 ## 致谢
 
 为 vLLM 社区构建，旨在简化生产环境下的 LLM 部署。特别感谢 vLLM 团队提供优秀的推理引擎。
+
+## 代码架构
+
+### 项目结构
+```
+index.html          # 单文件应用（含内联 CSS 与 JavaScript）
+├── <style>         # CSS 样式（CSS 变量、响应式设计、深色主题）
+├── <body>          # HTML 结构
+│   ├── GPU 配置面板
+│   ├── 模型配置面板
+│   ├── vLLM 配置面板
+│   ├── 内存分析面板
+│   └── 命令生成面板
+└── <script>        # JavaScript 逻辑
+```
+
+### 核心模块
+
+#### 1. GPU 配置模块
+- **预设下拉菜单**：15+ 种 GPU 预设，含消费级（RTX 3090/4070 Ti/4080/4090/5090）和专业级（A100/H100/L40S 等）
+- **实际可用显存**：使用 `nvidia-smi` 显示值（十进制 GB）
+- **张量并行支持**：自动计算每 GPU 权重分配
+- **显存利用率**：可配置 `gpu_memory_utilization`（默认 0.90）
+
+#### 2. 模型配置模块
+- **内置模型预设**：DeepSeek、Qwen、GLM 等厂商模型快速选择
+- **HuggingFace 集成**：
+  - 从 `config.json` 自动提取层数、KV heads、head 维度、最大上下文
+  - 从 `safetensors` 元数据估算参数量
+  - 从模型标签检测量化信息
+  - 本地缓存 7 天，支持离线使用
+- **注意力架构自动检测**：
+  - MHA (Multi-Head Attention)
+  - GQA (Grouped Query Attention)
+  - MLA (Multi-head Latent Attention) — DeepSeek-V2/V3 等模型
+  - 自动提取 `kv_lora_rank` 用于 MLA KV Cache 计算
+
+#### 3. KV Cache 计算引擎
+```javascript
+// GQA/MHA 模式（传统注意力）
+bytes_per_token = 2(K+V) × kv_heads_per_gpu × head_dim × dtype_bytes × num_layers
+
+// MLA 模式（压缩潜在向量）
+bytes_per_token = 2(K+V) × kv_lora_rank × dtype_bytes × num_layers
+```
+- 注意：MLA 的 KV Cache 不随张量并行分割（潜在维度在 GPU 间共享）
+
+#### 4. 内存分析模块
+- **内存分解表格**：权重、KV Cache、CUDA Graphs、开销、空闲
+- **可视化内存条**：按颜色区分各组件，支持悬停提示
+- **KV Cache 对比**：已分配 vs 需求对比图表
+- **状态指示**：
+  - ✓ 配置正常（绿色）
+  - ⚡ 紧张（黄色）— 高负载下可能 OOM
+  - ⚠ OOM 风险（红色）— 需调整参数
+
+#### 5. 高级功能
+- **CUDA Graphs 开销估算**：按激活缓冲区 × 10 倍计算（多图捕获）
+- **激活缓冲计算**：`(prefill_tokens + decode_tokens) × hidden_size × dtype × 2`
+- **自动保存/恢复配置**：localStorage 存储，30 天有效
+- **命令一键复制**：Toast 通知反馈
+
+### 关键代码位置
+
+| 功能 | 位置（行号） |
+|------|-------------|
+| GPU 预设数据 | `962-987` |
+| 内置模型数据 | `1335-1348` |
+| HuggingFace API 调用 | `1535-1584` |
+| 模型配置提取 | `1602-1729` |
+| MLA 检测逻辑 | `1681-1726` |
+| KV Cache 计算 | `2169-2186` |
+| 内存分解渲染 | `2216-2253` |
+| 命令生成 | `2401-2419` |
+| 配置保存/恢复 | `2522-2632` |
+
+### 技术实现要点
+
+1. **单位一致性**：所有计算使用十进制 GB（1 GB = 1,000³ bytes），与 GPU 厂商规格一致
+2. **vLLM 对比**：额外显示二进制 GiB（1 GiB = 1,073,741,824 bytes），便于与 vLLM 日志对照
+3. **响应式设计**：支持 320px ~ 1440px+ 屏幕宽度
+4. **无障碍支持**：ARIA 标签、键盘导航、语义化 HTML
+5. **错误处理**：网络超时、私有模型、配置缺失等情况的友好提示
+
+### 开发与调试
+
+- 直接打开 `index.html` 即可运行，无需构建
+- 主要调试函数：`calculate()`（内存计算核心）
+- 状态查看：`detectedAttentionType`、`extractedKvLoraRank`（MLA 检测状态）

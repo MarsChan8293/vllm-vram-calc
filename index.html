@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>vLLM VRAM Calculator</title>
+  <title>vLLM VRAM 计算器</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -943,8 +943,8 @@
 <body>
   <div class="container">
     <header role="banner">
-      <h1>vLLM VRAM Calculator</h1>
-      <p class="subtitle">Plan GPU memory allocation for LLM deployments</p>
+      <h1>vLLM VRAM 计算器</h1>
+      <p class="subtitle">规划 LLM 部署的 GPU 显存分配</p>
     </header>
 
     <div class="grid">
@@ -954,21 +954,21 @@
         <div class="panel" role="region" aria-labelledby="gpu-config-title">
           <div class="panel-header">
             <div class="panel-icon gpu" aria-hidden="true"><i data-lucide="monitor" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="gpu-config-title">GPU Configuration</h2>
+            <h2 class="panel-title" id="gpu-config-title">GPU 配置</h2>
           </div>
 
           <div class="form-group">
-            <label for="gpu-preset">GPU Preset</label>
+            <label for="gpu-preset">GPU 预设</label>
             <select id="gpu-preset" aria-label="Select GPU preset from common models">
-              <option value="custom">Custom (enter manually)</option>
-              <optgroup label="Consumer GPUs">
+              <option value="custom">自定义（手动输入）</option>
+              <optgroup label="消费级 GPU">
                 <option value="12.9">RTX 4070 Ti (12GB)</option>
                 <option value="17.2">RTX 4080 (16GB)</option>
                 <option value="25.8">RTX 4090 (24GB)</option>
                 <option value="25.4">RTX 3090 (24GB)</option>
                 <option value="34.2" selected>RTX 5090 (32GB)</option>
               </optgroup>
-              <optgroup label="Professional GPUs">
+              <optgroup label="专业级 GPU">
                 <option value="51.5">RTX 6000 Ada (48GB)</option>
                 <option value="51.5">L40 (48GB)</option>
                 <option value="51.5">L40S (48GB)</option>
@@ -985,30 +985,30 @@
                 <option value="128.0">NPU 910C (128GB)</option>
               </optgroup>
             </select>
-            <p class="hint">Actual usable VRAM from nvidia-smi (decimal GB)</p>
+            <p class="hint">实际可用显存（nvidia-smi 显示值，十进制 GB）</p>
           </div>
 
           <div class="input-row">
             <div class="form-group">
-              <label for="gpu-vram">VRAM per GPU (GB)</label>
+              <label for="gpu-vram">每卡显存 (GB)</label>
               <input type="number" id="gpu-vram" value="34.2" min="1" max="192" step="0.1"
                 aria-label="VRAM per GPU in decimal gigabytes"
                 aria-describedby="gpu-vram-hint">
-              <p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes (decimal)</p>
+              <p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes（十进制）</p>
             </div>
             <div class="form-group">
-              <label for="num-gpus">Number of GPUs (TP size)</label>
+              <label for="num-gpus">GPU 数量（TP 大小）</label>
               <input type="number" id="num-gpus" value="2" min="1" max="8" step="1"
                 aria-label="Number of GPUs for tensor parallelism">
             </div>
           </div>
 
           <div class="form-group">
-            <label for="gpu-utilization">GPU Memory Utilization</label>
+            <label for="gpu-utilization">GPU 显存利用率</label>
             <input type="number" id="gpu-utilization" value="0.90" min="0.5" max="0.99" step="0.01"
               aria-label="GPU memory utilization ratio"
               aria-describedby="gpu-util-hint">
-            <p class="hint" id="gpu-util-hint">Typically 0.85-0.95. Lower = more headroom for spikes</p>
+            <p class="hint" id="gpu-util-hint">通常 0.85-0.95。较低值可为峰值预留更多空间</p>
           </div>
         </div>
 
@@ -1016,22 +1016,22 @@
         <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="model-config-title">
           <div class="panel-header">
             <div class="panel-icon model" aria-hidden="true"><i data-lucide="brain" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="model-config-title">Model Configuration</h2>
+            <h2 class="panel-title" id="model-config-title">模型配置</h2>
           </div>
 
           <!-- 统一的模型选择区域 -->
           <div class="selection-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
             <div class="form-group">
-              <label for="model-vendor">Vendor</label>
+              <label for="model-vendor">厂商</label>
               <select id="model-vendor" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
                 <option value="DeepSeek">DeepSeek</option>
                 <option value="Qwen">Qwen</option>
                 <option value="GLM">GLM</option>
-                <option value="Custom">Custom / Other</option>
+                <option value="Custom">自定义/其他</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="model-preset">Preset Model</label>
+              <label for="model-preset">预设模型</label>
               <select id="model-preset" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
                 <!-- 动态填充 -->
               </select>
@@ -1040,14 +1040,14 @@
 
           <!-- HuggingFace Integration -->
           <div class="form-group">
-            <label for="hf-model-id">HuggingFace Model ID</label>
+            <label for="hf-model-id">HuggingFace 模型 ID</label>
             <div class="hf-input-row">
               <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3"
                 aria-label="HuggingFace model ID"
                 aria-describedby="hf-status">
               <button class="hf-fetch-btn" id="hf-fetch-btn"
                 aria-label="Fetch model configuration from HuggingFace">
-                <span class="btn-text">Fetch</span>
+                <span class="btn-text">获取</span>
                 <span class="btn-loading" style="display: none;" aria-hidden="true">
                   <svg class="spinner" viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/>
@@ -1055,18 +1055,18 @@
                 </span>
               </button>
             </div>
-            <p class="hint" id="hf-status" role="status" aria-live="polite">Enter ID or select preset and click Fetch</p>
+            <p class="hint" id="hf-status" role="status" aria-live="polite">输入 ID 或选择预设，然后点击获取</p>
           </div>
 
 
           <div class="input-row">
             <div class="form-group">
-              <label for="model-weights">Model Weights (GB)</label>
+              <label for="model-weights">参数量（B）</label>
               <input type="number" id="model-weights" value="36.3" min="0.1" max="500" step="0.1">
-              <p class="hint">Total size on disk</p>
+              <p class="hint">BF16 基础大小（来自 HF 或手动输入）。实际 = 此值 × 量化比例</p>
             </div>
             <div class="form-group">
-              <label for="num-layers">Number of Layers</label>
+              <label for="num-layers">层数</label>
               <input type="number" id="num-layers" value="32" min="1" max="200" step="1">
             </div>
           </div>
@@ -1075,22 +1075,22 @@
             <div class="form-group">
               <label for="kv-heads">KV Heads (GQA)</label>
               <input type="number" id="kv-heads" value="8" min="1" max="128" step="1">
-              <p class="hint">Key-Value attention heads</p>
+              <p class="hint">Key-Value 注意力头数</p>
             </div>
             <div class="form-group">
-              <label for="head-dim">Head Dimension</label>
+              <label for="head-dim">Head 维度</label>
               <input type="number" id="head-dim" value="64" min="32" max="256" step="8">
             </div>
           </div>
 
           <div class="input-row">
             <div class="form-group">
-              <label for="attn-heads">Attention Heads (Total)</label>
+              <label for="attn-heads">注意力头数（总数）</label>
               <input type="number" id="attn-heads" value="8" min="1" max="128" step="1">
-              <p class="hint">Total attention heads (>= KV heads)</p>
+              <p class="hint">总注意力头数（≥ KV heads）</p>
             </div>
             <div class="form-group">
-              <label for="activation-dtype">Activation Dtype</label>
+              <label for="activation-dtype">激活数据类型</label>
               <select id="activation-dtype">
                 <option value="2" selected>BF16/FP16 (2 bytes)</option>
                 <option value="1">FP8 (1 byte)</option>
@@ -1100,68 +1100,40 @@
 
           <div class="input-row" style="margin-top: 1rem;">
             <div class="form-group">
-              <label for="attention-type">Attention Architecture</label>
+              <label for="attention-type">注意力架构</label>
               <select id="attention-type">
-                <option value="auto" selected>Auto-detect (自动检测)</option>
+                <option value="auto" selected>自动检测</option>
                 <option value="mha">MHA (Multi-Head Attention)</option>
                 <option value="gqa">GQA (Grouped Query Attention)</option>
                 <option value="mla">MLA (Multi-head Latent Attention)</option>
               </select>
-              <p class="hint" id="attention-type-detected">Enter a HuggingFace model ID to auto-detect</p>
+              <p class="hint" id="attention-type-detected">输入 HuggingFace 模型 ID 以自动检测</p>
             </div>
             <div class="form-group" id="kv-lora-rank-group" style="display: none;">
               <label for="kv-lora-rank">KV LoRA Rank</label>
               <input type="number" id="kv-lora-rank" value="1536" min="64" max="8192" step="64">
-              <p class="hint">MLA compression dimension (auto-detected from HF)</p>
+              <p class="hint">MLA 压缩维度（从 HF 自动检测）</p>
             </div>
           </div>
 
           <!-- Quantization Configuration -->
           <div class="section-divider collapsible" id="quant-toggle" style="cursor: pointer; user-select: none;">
-            <span>Quantization Settings</span>
+            <span>量化设置</span>
             <i data-lucide="chevron-down" class="toggle-icon" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
           </div>
 
           <div id="quant-section-content">
-            <div class="input-row">
-              <div class="form-group">
-                <label for="quant-method">Weight Quantization</label>
+<div class="form-group">
+<label for="quant-method">权重量化</label>
                 <select id="quant-method">
-                  <option value="none">None (FP16/BF16)</option>
-                  <option value="fp8">FP8 (8-bit float)</option>
-                  <option value="mxfp4" selected>MXFP4 (4-bit MX)</option>
-                  <option value="awq">AWQ (4-bit)</option>
-                  <option value="gptq">GPTQ (4-bit)</option>
-                  <option value="bnb-nf4">BitsAndBytes NF4</option>
-                  <option value="bnb-int8">BitsAndBytes INT8</option>
-                  <option value="exl2">EXL2 (variable)</option>
-                  <option value="gguf">GGUF (variable)</option>
+                  <option value="none" selected>BF16 (2 字节/参数)</option>
+                  <option value="int8">INT8 (1 字节/参数)</option>
+                  <option value="fp8">FP8 (1 字节/参数)</option>
+                  <option value="int4">INT4 (0.5 字节/参数)</option>
+                  <option value="fp4">FP4 (0.5 字节/参数)</option>
                 </select>
-              </div>
-              <div class="form-group">
-                <label for="quant-bits">Effective Bits</label>
-                <input type="number" id="quant-bits" value="4" min="1" max="16" step="0.5">
-                <p class="hint">Bits per weight parameter</p>
-              </div>
-            </div>
-
-            <div class="input-row">
-              <div class="form-group">
-                <label for="base-params">Base Model Params (B)</label>
-                <input type="number" id="base-params" value="60" min="0.1" max="1000" step="0.1">
-                <p class="hint">Unquantized parameter count</p>
-              </div>
-              <div class="form-group">
-                <label for="quant-group-size">Group Size</label>
-                <select id="quant-group-size">
-                  <option value="0">N/A (per-tensor)</option>
-                  <option value="32">32 (block-wise)</option>
-                  <option value="64">64</option>
-                  <option value="128" selected>128 (common)</option>
-                  <option value="256">256</option>
-                </select>
-              </div>
-            </div>
+                <p class="hint">实际权重 = 参数量(BF16) × (字节数/参数 ÷ 2)</p>
+             </div>
 
 
           </div>
@@ -1175,33 +1147,33 @@
         <div class="panel">
           <div class="panel-header">
             <div class="panel-icon config"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title">vLLM Configuration</h2>
+            <h2 class="panel-title">vLLM 配置</h2>
           </div>
 
           <div class="input-row">
             <div class="form-group">
-              <label for="max-model-len">Max Model Length</label>
+              <label for="max-model-len">最大模型长度</label>
               <input type="number" id="max-model-len" value="131072" min="1024" max="1048576" step="1024">
-              <p class="hint">Maximum context window</p>
+              <p class="hint">最大上下文窗口</p>
             </div>
             <div class="form-group">
-              <label for="max-num-seqs">Max Num Seqs</label>
+              <label for="max-num-seqs">最大并发序列数</label>
               <input type="number" id="max-num-seqs" value="8" min="1" max="256" step="1">
-              <p class="hint">Concurrent sequences</p>
+              <p class="hint">并发序列数量</p>
             </div>
           </div>
 
           <div class="input-row">
             <div class="form-group">
-              <label for="max-batched-tokens">Max Batched Tokens</label>
+              <label for="max-batched-tokens">最大批处理 Token 数</label>
               <input type="number" id="max-batched-tokens" value="65536" min="1024" max="262144" step="1024">
-              <p class="hint">Tokens per forward pass</p>
+              <p class="hint">每次前向传播的 Token 数</p>
             </div>
             <div class="form-group">
-              <label for="kv-cache-dtype">KV Cache Dtype</label>
+              <label for="kv-cache-dtype">KV Cache 数据类型</label>
               <select id="kv-cache-dtype">
-                <option value="2" selected>BF16/FP16 (2 bytes)</option>
-                <option value="1">FP8 (1 byte)</option>
+                <option value="2" selected>BF16/FP16 (2 字节)</option>
+                <option value="1">FP8 (1 字节)</option>
               </select>
             </div>
           </div>
@@ -1210,27 +1182,27 @@
             <div class="form-group">
               <label for="cuda-graphs">CUDA Graphs</label>
               <select id="cuda-graphs">
-                <option value="1" selected>Enabled (calculated)</option>
-                <option value="0">Disabled (--enforce-eager)</option>
+                <option value="1" selected>启用（自动计算）</option>
+                <option value="0">禁用 (--enforce-eager)</option>
               </select>
             </div>
             <div class="form-group">
-              <label for="overhead-estimate">Overhead Estimate (GB)</label>
+              <label for="overhead-estimate">预估开销 (GB)</label>
               <input type="number" id="overhead-estimate" value="0" min="0" step="0.01" readonly>
-              <p class="hint">Calculated from activation buffers</p>
+              <p class="hint">根据激活缓冲区计算</p>
             </div>
           </div>
 
           <div class="input-row">
             <div class="form-group">
-              <label for="overhead-padding">Extra Overhead (GB)</label>
+              <label for="overhead-padding">额外开销 (GB)</label>
               <input type="number" id="overhead-padding" value="1.0" min="0" max="10" step="0.1">
-              <p class="hint">Framework/MoE/compilation overhead. Try 1-2 GB for large models, 0.5 GB for small</p>
+              <p class="hint">框架/MoE/编译开销。大模型建议 1-2 GB，小模型 0.5 GB</p>
             </div>
             <div class="form-group">
-              <label for="overhead-notes">Overhead Inputs</label>
+              <label for="overhead-notes">开销输入</label>
               <div class="hint" id="overhead-notes">
-                Prefill + decode tokens × hidden size per GPU × dtype
+                Prefill + decode tokens × 每 GPU 隐藏层大小 × dtype
               </div>
             </div>
           </div>
@@ -1239,14 +1211,14 @@
         <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="memory-breakdown-title">
           <div class="panel-header">
             <div class="panel-icon result" aria-hidden="true"><i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="memory-breakdown-title">Memory Breakdown (Per GPU)</h2>
+            <h2 class="panel-title" id="memory-breakdown-title">内存分配明细（每卡）</h2>
           </div>
 
           <table class="breakdown-table" role="table" aria-label="Memory usage breakdown per GPU">
             <thead>
               <tr>
-                <th scope="col">Component</th>
-                <th scope="col">Size</th>
+                <th scope="col">组件</th>
+                <th scope="col">大小</th>
               </tr>
             </thead>
             <tbody id="breakdown-body">
@@ -1255,20 +1227,20 @@
           </table>
 
           <div class="memory-bar-container">
-            <div class="memory-bar-label">
-              <span>Memory Usage</span>
-              <span id="memory-percent" aria-live="polite">0%</span>
-            </div>
+<div class="memory-bar-label">
+               <span>内存使用</span>
+               <span id="memory-percent" aria-live="polite">0%</span>
+             </div>
             <div class="memory-bar" id="memory-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="GPU memory usage percentage">
               <!-- Filled by JS -->
             </div>
-            <div class="memory-legend">
-              <div class="legend-item"><div class="legend-color weights"></div>Weights</div>
-              <div class="legend-item"><div class="legend-color kv-cache"></div>KV Cache</div>
-              <div class="legend-item"><div class="legend-color cuda-graphs"></div>CUDA Graphs</div>
-              <div class="legend-item"><div class="legend-color overhead"></div>Overhead</div>
-              <div class="legend-item"><div class="legend-color free"></div>Free</div>
-            </div>
+<div class="memory-legend">
+               <div class="legend-item"><div class="legend-color weights"></div>权重</div>
+               <div class="legend-item"><div class="legend-color kv-cache"></div>KV Cache</div>
+               <div class="legend-item"><div class="legend-color cuda-graphs"></div>CUDA Graphs</div>
+               <div class="legend-item"><div class="legend-color overhead"></div>开销</div>
+               <div class="legend-item"><div class="legend-color free"></div>空闲</div>
+             </div>
           </div>
 
           <div id="status-container" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -1278,25 +1250,25 @@
         <div class="panel" style="margin-top: 1.5rem;">
           <div class="panel-header">
             <div class="panel-icon config"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title">Capacity Analysis</h2>
+            <h2 class="panel-title">容量分析</h2>
           </div>
 
           <div class="results-section">
-            <div class="section-title">KV Cache: Allocated vs. Required</div>
-            <div class="result-row">
-              <span class="result-label">Allocated KV Cache Space</span>
-              <span class="result-value" id="kv-allocated-display">-</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Required (max-model-len × max-num-seqs)</span>
-              <span class="result-value" id="kv-required-display">-</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Utilization</span>
-              <span class="result-value" id="kv-utilization-display">-</span>
-            </div>
-            <div class="kv-comparison-bar-container">
-              <div class="kv-comparison-label">Required vs. Allocated</div>
+<div class="section-title">KV Cache：已分配 vs 需求</div>
+             <div class="result-row">
+               <span class="result-label">已分配 KV Cache 空间</span>
+               <span class="result-value" id="kv-allocated-display">-</span>
+             </div>
+             <div class="result-row">
+               <span class="result-label">需求（max-model-len × max-num-seqs）</span>
+               <span class="result-value" id="kv-required-display">-</span>
+             </div>
+             <div class="result-row">
+               <span class="result-label">利用率</span>
+               <span class="result-value" id="kv-utilization-display">-</span>
+             </div>
+             <div class="kv-comparison-bar-container">
+               <div class="kv-comparison-label">需求 vs 已分配</div>
               <div class="kv-comparison-bar">
                 <div class="kv-comparison-fill" id="kv-comparison-fill"></div>
               </div>
@@ -1305,47 +1277,48 @@
           </div>
 
           <div class="results-section">
-            <div class="section-title">KV Cache Capacity</div>
-            <div class="result-row">
-              <span class="result-label">Available for KV Cache</span>
-              <span class="result-value" id="kv-available">-</span>
+<div class="section-title">KV Cache 容量</div>
+             <div class="result-row">
+               <span class="result-label">可用于 KV Cache</span>
+               <span class="result-value" id="kv-available">-</span>
+             </div>
+<div class="result-row">
+                <span class="result-label">每 Token 字节数</span>
+                <span class="result-value" id="bytes-per-token">-</span>
+              </div>
+              <p class="hint" id="bytes-per-token-formula" style="margin-top: -0.5rem; margin-bottom: 0.5rem;"></p>
+              <div class="result-row">
+                <span class="result-label">Cache 中最大 Token 数</span>
+                <span class="result-value highlight" id="max-tokens">-</span>
+              </div>
             </div>
-            <div class="result-row">
-              <span class="result-label">Bytes per Token</span>
-              <span class="result-value" id="bytes-per-token">-</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Max Tokens in Cache</span>
-              <span class="result-value highlight" id="max-tokens">-</span>
-            </div>
-          </div>
 
-          <div class="results-section">
-            <div class="section-title">Effective Limits</div>
-            <div class="result-row">
-              <span class="result-label">Max Context (1 seq)</span>
-              <span class="result-value" id="max-context-single">-</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Avg Context (all seqs)</span>
-              <span class="result-value" id="avg-context-all">-</span>
-            </div>
-            <div class="result-row">
-              <span class="result-label">Recommended max-num-seqs</span>
-              <span class="result-value highlight" id="recommended-seqs">-</span>
-            </div>
-          </div>
+           <div class="results-section">
+             <div class="section-title">有效限制</div>
+             <div class="result-row">
+               <span class="result-label">最大上下文（单序列）</span>
+               <span class="result-value" id="max-context-single">-</span>
+             </div>
+             <div class="result-row">
+               <span class="result-label">平均上下文（所有序列）</span>
+               <span class="result-value" id="avg-context-all">-</span>
+             </div>
+             <div class="result-row">
+               <span class="result-label">推荐 max-num-seqs</span>
+               <span class="result-value highlight" id="recommended-seqs">-</span>
+             </div>
+           </div>
         </div>
 
         <!-- Generated Command -->
         <div class="panel" style="margin-top: 1.5rem;">
           <div class="panel-header">
             <div class="panel-icon model"><i data-lucide="terminal" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title">Generated vLLM Command</h2>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span class="hint"><i data-lucide="copy" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Click to copy command</span>
-          </div>
+<h2 class="panel-title">生成的 vLLM 命令</h2>
+           </div>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+             <span class="hint"><i data-lucide="copy" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> 点击复制命令</span>
+           </div>
           <div class="command-output" id="command-output" style="cursor: pointer; position: relative;" onclick="copyCommandToClipboard()">
             <!-- Filled by JS -->
           </div>
@@ -1448,13 +1421,42 @@
     let detectedAttentionType = null;
     let extractedKvLoraRank = null;
 
-    // Quantization inputs (defined early for preset handlers)
     const quantInputs = {
-      method: document.getElementById('quant-method'),
-      bits: document.getElementById('quant-bits'),
-      baseParams: document.getElementById('base-params'),
-      groupSize: document.getElementById('quant-group-size')
+      method: document.getElementById('quant-method')
     };
+
+    function getQuantMultiplier(method) {
+      const multipliers = {
+        'none': 1.0,
+        'int8': 0.5,
+        'fp8': 0.5,
+        'int4': 0.25,
+        'fp4': 0.25
+      };
+      return multipliers[method] || 1.0;
+    }
+
+    function getQuantBytesPerParam(method) {
+      const bytes = {
+        'none': 2,
+        'int8': 1,
+        'fp8': 1,
+        'int4': 0.5,
+        'fp4': 0.5
+      };
+      return bytes[method] || 2;
+    }
+
+    function getQuantLabel(method) {
+      const labels = {
+        'none': 'BF16',
+        'int8': 'INT8',
+        'fp8': 'FP8',
+        'int4': 'INT4',
+        'fp4': 'FP4'
+      };
+      return labels[method] || 'BF16';
+    }
 
     // HuggingFace Integration
     const hfModelId = document.getElementById('hf-model-id');
@@ -1581,35 +1583,17 @@
       }
     }
 
-    function estimateModelWeights(modelInfo, config) {
-      // Try to get size from safetensors info
-      // Convert to decimal GB (1 GB = 1,000,000,000 bytes) for consistency
-      if (modelInfo.safetensors?.total) {
-        return modelInfo.safetensors.total / 1e9; // bytes to GB (decimal)
-      }
-
-      // Try to estimate from parameters
+    function estimateModelParams(modelInfo, config) {
+      // Try to get parameter count from safetensors info
       if (modelInfo.safetensors?.parameters) {
         const params = Object.values(modelInfo.safetensors.parameters).reduce((a, b) => a + b, 0);
-        // Estimate based on dtype
-        const hasQuantization = modelInfo.tags?.some(t =>
-          t.includes('awq') || t.includes('gptq') || t.includes('bnb') ||
-          t.includes('4bit') || t.includes('8bit') || t.includes('fp8') ||
-          t.includes('mxfp4')
-        );
-        const bytesPerParam = hasQuantization ? 0.5 : 2; // 4-bit vs fp16
-        return (params * bytesPerParam) / 1e9; // bytes to GB (decimal)
+        return params / 1e9; // Convert to billions (B)
       }
 
-      // Fallback: try to parse from model card or name
-      const nameMatch = modelInfo.modelId?.match(/(\d+)[bB]/);
+      // Fallback: try to parse from model name
+      const nameMatch = modelInfo.modelId?.match(/(\d+(?:\.\d+)?)[bB]/);
       if (nameMatch) {
-        const billions = parseInt(nameMatch[1]);
-        const hasQuantization = modelInfo.tags?.some(t => 
-          t.includes('awq') || t.includes('gptq') || t.includes('bnb') || 
-          t.includes('4bit') || t.includes('8bit')
-        );
-        return hasQuantization ? billions * 0.5 : billions * 2;
+        return parseFloat(nameMatch[1]);
       }
 
       return null;
@@ -1625,7 +1609,7 @@
         kvHeads: null,
         headDim: null,
         maxContext: null,
-        weightsGB: null,
+        paramsB: null,
         quantization: null,
         attentionType: null,  // 'mha' | 'gqa' | 'mla'
         kvLoraRank: null,     // For MLA models
@@ -1690,8 +1674,8 @@
                            config.seq_length;
       }
 
-      // Estimate weights
-      result.weightsGB = estimateModelWeights(modelInfo, config);
+      // Estimate parameter count
+      result.paramsB = estimateModelParams(modelInfo, config);
 
       // Attention architecture detection
       if (config?.attention_type) {
@@ -1762,33 +1746,33 @@
         </div>
         <div class="model-info-grid">
           <div class="model-info-item">
-            <span class="label">Architecture</span>
-            <span class="value">${modelConfig.architecture || 'Unknown'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">Layers</span>
-            <span class="value">${modelConfig.numLayers || '?'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">KV Heads</span>
-            <span class="value">${modelConfig.kvHeads || '?'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">Attn Heads</span>
-            <span class="value">${modelConfig.attnHeads || '?'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">Head Dim</span>
-            <span class="value">${modelConfig.headDim || '?'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">Max Context</span>
-            <span class="value">${modelConfig.maxContext ? formatNumber(modelConfig.maxContext) : '?'}</span>
-          </div>
-          <div class="model-info-item">
-            <span class="label">Est. Size</span>
-            <span class="value">${modelConfig.weightsGB ? modelConfig.weightsGB.toFixed(1) + ' GB' : '?'}</span>
-          </div>
+<span class="label">架构</span>
+             <span class="value">${modelConfig.architecture || '未知'}</span>
+           </div>
+           <div class="model-info-item">
+             <span class="label">层数</span>
+             <span class="value">${modelConfig.numLayers || '?'}</span>
+           </div>
+           <div class="model-info-item">
+             <span class="label">KV Heads</span>
+             <span class="value">${modelConfig.kvHeads || '?'}</span>
+           </div>
+           <div class="model-info-item">
+             <span class="label">注意力头</span>
+             <span class="value">${modelConfig.attnHeads || '?'}</span>
+           </div>
+           <div class="model-info-item">
+             <span class="label">Head 维度</span>
+             <span class="value">${modelConfig.headDim || '?'}</span>
+           </div>
+           <div class="model-info-item">
+             <span class="label">最大上下文</span>
+             <span class="value">${modelConfig.maxContext ? formatNumber(modelConfig.maxContext) : '?'}</span>
+           </div>
+<div class="model-info-item">
+              <span class="label">参数量</span>
+              <span class="value">${modelConfig.paramsB ? modelConfig.paramsB.toFixed(1) + ' B' : '?'}</span>
+            </div>
         </div>
         <div class="model-info-tags">
           ${modelConfig.architecture ? `<span class="model-tag arch">${modelConfig.architecture}</span>` : ''}
@@ -1825,45 +1809,25 @@
       if (modelConfig.maxContext) {
         inputs.maxModelLen.value = modelConfig.maxContext;
       }
-      if (modelConfig.weightsGB) {
-        inputs.modelWeights.value = modelConfig.weightsGB.toFixed(1);
+      if (modelConfig.paramsB) {
+        inputs.modelWeights.value = modelConfig.paramsB.toFixed(1);
       }
 
       // Apply quantization settings
       if (modelConfig.quantization) {
         const quantMap = {
-          'AWQ': 'awq',
-          'GPTQ': 'gptq',
-          'MXFP4': 'mxfp4',
+          'AWQ': 'int4',
+          'GPTQ': 'int4',
+          'MXFP4': 'fp4',
           'FP8': 'fp8',
-          '4BIT': 'awq',
-          '8BIT': 'bnb-int8',
-          'BNB': 'bnb-nf4',
-          'EXL2': 'exl2',
-          'GGUF': 'gguf'
+          '4BIT': 'int4',
+          '8BIT': 'int8',
+          'BNB': 'int4',
+          'EXL2': 'int4',
+          'GGUF': 'int4'
         };
         const mappedQuant = quantMap[modelConfig.quantization] || 'none';
         quantInputs.method.value = mappedQuant;
-        
-        // Set bits based on quant method
-        const bitsMap = {
-          'none': 16, 'fp8': 8, 'mxfp4': 4, 'awq': 4, 'gptq': 4,
-          'bnb-nf4': 4, 'bnb-int8': 8, 'exl2': 4, 'gguf': 4
-        };
-        if (bitsMap[mappedQuant]) {
-          quantInputs.bits.value = bitsMap[mappedQuant];
-        }
-      }
-
-      // Try to set base params from model info
-      if (modelConfig.baseParams) {
-        quantInputs.baseParams.value = modelConfig.baseParams;
-      } else if (modelConfig.name) {
-        // Try to extract from name (e.g., "70B", "7b")
-        const paramMatch = modelConfig.name.match(/(\d+(?:\.\d+)?)\s*[bB]/);
-        if (paramMatch) {
-          quantInputs.baseParams.value = parseFloat(paramMatch[1]);
-        }
       }
 
       // Apply attention type detection
@@ -1893,29 +1857,29 @@
       // Check cache first
       const cached = getCachedModel(modelId);
       if (cached) {
-        hfStatus.textContent = 'Loading from cache...';
-        hfStatus.className = 'hint loading';
+hfStatus.textContent = '正在从缓存加载...';
+         hfStatus.className = 'hint loading';
 
-        setTimeout(() => {
-          const modelConfig = extractModelConfig(cached.modelInfo, cached.config);
-          renderModelInfoCard(modelConfig);
-          applyModelConfig(modelConfig);
+         setTimeout(() => {
+           const modelConfig = extractModelConfig(cached.modelInfo, cached.config);
+           renderModelInfoCard(modelConfig);
+           applyModelConfig(modelConfig);
 
-          const missingFields = [];
-          if (!modelConfig.numLayers) missingFields.push('layers');
-          if (!modelConfig.attnHeads) missingFields.push('attention heads');
-          if (!modelConfig.kvHeads) missingFields.push('KV heads');
-          if (!modelConfig.headDim) missingFields.push('head dim');
-          if (!modelConfig.weightsGB) missingFields.push('size');
+const missingFields = [];
+            if (!modelConfig.numLayers) missingFields.push('层数');
+            if (!modelConfig.attnHeads) missingFields.push('注意力头');
+            if (!modelConfig.kvHeads) missingFields.push('KV heads');
+            if (!modelConfig.headDim) missingFields.push('Head 维度');
+            if (!modelConfig.paramsB) missingFields.push('参数量');
 
-          if (missingFields.length > 0) {
-            hfStatus.textContent = `Loaded from cache! Some values need manual entry: ${missingFields.join(', ')}`;
-            hfStatus.className = 'hint warning';
-          } else {
-            hfStatus.textContent = `Successfully loaded ${modelConfig.name} (cached)`;
-            hfStatus.className = 'hint success';
-          }
-        }, 100);
+           if (missingFields.length > 0) {
+             hfStatus.textContent = `已从缓存加载！部分值需手动输入：${missingFields.join(', ')}`;
+             hfStatus.className = 'hint warning';
+           } else {
+             hfStatus.textContent = `成功加载 ${modelConfig.name}（缓存）`;
+             hfStatus.className = 'hint success';
+           }
+         }, 100);
 
         return;
       }
@@ -1924,7 +1888,7 @@
       hfFetchBtn.disabled = true;
       btnText.style.display = 'none';
       btnLoading.style.display = 'block';
-      hfStatus.textContent = 'Fetching model config from HuggingFace...';
+      hfStatus.textContent = '正在从 HuggingFace 获取模型配置...';
       hfStatus.className = 'hint loading';
 
       try {
@@ -1942,23 +1906,23 @@
         applyModelConfig(modelConfig);
 
         // Success message
-        const missingFields = [];
-        if (!modelConfig.numLayers) missingFields.push('layers');
-        if (!modelConfig.attnHeads) missingFields.push('attention heads');
-        if (!modelConfig.kvHeads) missingFields.push('KV heads');
-        if (!modelConfig.headDim) missingFields.push('head dim');
-        if (!modelConfig.weightsGB) missingFields.push('size');
+const missingFields = [];
+          if (!modelConfig.numLayers) missingFields.push('层数');
+          if (!modelConfig.attnHeads) missingFields.push('注意力头');
+          if (!modelConfig.kvHeads) missingFields.push('KV heads');
+          if (!modelConfig.headDim) missingFields.push('Head 维度');
+          if (!modelConfig.paramsB) missingFields.push('参数量');
 
-        if (missingFields.length > 0) {
-          hfStatus.textContent = `Loaded! Some values need manual entry: ${missingFields.join(', ')}`;
-          hfStatus.className = 'hint warning';
-        } else {
-          hfStatus.textContent = `Successfully loaded ${modelConfig.name}`;
-          hfStatus.className = 'hint success';
-        }
+         if (missingFields.length > 0) {
+           hfStatus.textContent = `已加载！部分值需手动输入：${missingFields.join(', ')}`;
+           hfStatus.className = 'hint warning';
+         } else {
+           hfStatus.textContent = `成功加载 ${modelConfig.name}`;
+           hfStatus.className = 'hint success';
+         }
 
       } catch (error) {
-        hfStatus.textContent = `Error: ${error.message}`;
+        hfStatus.textContent = `错误：${error.message}`;
         hfStatus.className = 'hint error';
 
         // Remove model card on error
@@ -2044,7 +2008,7 @@
         // Show detected type or default
         if (detectedAttentionType) {
           const modelName = hfModelId.value.split('/').pop() || 'model';
-          hint.textContent = `Detected: ${detectedAttentionType.toUpperCase()} (${modelName})`;
+          hint.textContent = `检测到：${detectedAttentionType.toUpperCase()} (${modelName})`;
           hint.className = 'hint success';
           
           // Show kv_lora_rank input if MLA detected
@@ -2062,13 +2026,13 @@
             kvLoraRankGroup.style.display = 'none';
           }
         } else {
-          hint.textContent = 'Could not detect, using default: GQA';
+          hint.textContent = '无法检测，使用默认：GQA';
           hint.className = 'hint warning';
           kvLoraRankGroup.style.display = 'none';
         }
       } else {
         // Manual selection
-        hint.textContent = `Manually set to: ${selectedType.toUpperCase()}`;
+        hint.textContent = `手动设置为：${selectedType.toUpperCase()}`;
         hint.className = 'hint';
         
         // Show kv_lora_rank for MLA
@@ -2156,11 +2120,14 @@
       // Note: vLLM reports in GiB (binary), where 1 GiB = 1,073,741,824 bytes.
       // Conversion: GB (decimal) × 0.931323 ≈ GiB (binary)
 
-      // Get values
+// Get values
       const gpuVram = Math.max(0, toNumber(inputs.gpuVram.value));  // GB (decimal)
       const numGpus = Math.max(1, toInt(inputs.numGpus.value, 1));
       const gpuUtilization = Math.min(1, Math.max(0, toNumber(inputs.gpuUtilization.value)));
-      const modelWeights = Math.max(0, toNumber(inputs.modelWeights.value));  // GB (decimal)
+      const baseParams = Math.max(0, toNumber(inputs.modelWeights.value));  // 参数量（B，十亿）
+      const quantMethod = quantInputs.method.value;
+      const bytesPerParam = getQuantBytesPerParam(quantMethod);  // 每参数字节数
+      const modelWeights = baseParams * bytesPerParam;  // 权重大小（GB）= 参数量 × 字节数/参数
       const numLayers = Math.max(1, toInt(inputs.numLayers.value, 1));
       const kvHeads = Math.max(1, toInt(inputs.kvHeads.value, 1));
       const headDim = Math.max(1, toInt(inputs.headDim.value, 1));
@@ -2172,6 +2139,8 @@
       const activationDtypeBytes = Math.max(1, toInt(inputs.activationDtype.value, 2));
       const cudaGraphsEnabled = inputs.cudaGraphs.value === '1';
       const overheadPadding = Math.max(0, toNumber(inputs.overheadPadding.value));  // GB (decimal)
+
+      const quantLabel = getQuantLabel(quantMethod);
 
       // Calculate per-GPU values (all in GB decimal)
       const availableVram = gpuVram * gpuUtilization;
@@ -2246,11 +2215,15 @@
       const breakdownBody = document.getElementById('breakdown-body');
       breakdownBody.innerHTML = `
         <tr>
-          <td>Model Weights</td>
+          <td>模型权重 (${quantLabel})</td>
           <td>${formatBytes(weightsPerGpu)}</td>
         </tr>
         <tr>
-          <td>KV Cache Pool (allocated)</td>
+          <td style="color: var(--text-muted); font-size: 0.8em;">&nbsp;&nbsp;参数量：${baseParams.toFixed(1)}B × ${bytesPerParam} bytes</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>KV Cache 池（已分配）</td>
           <td>${formatBytes(kvCacheAllocated)}</td>
         </tr>
         <tr>
@@ -2258,23 +2231,23 @@
           <td>${formatBytes(cudaGraphsSize)}</td>
         </tr>
         <tr>
-          <td>Overhead (activation)</td>
+          <td>开销（激活）</td>
           <td>${formatBytes(overheadEstimate)}</td>
         </tr>
         <tr>
-          <td>Overhead (extra)</td>
+          <td>开销（额外）</td>
           <td>${formatBytes(overheadPadding)}</td>
         </tr>
         <tr class="total-row">
-          <td>Total Allocated</td>
+          <td>总分配</td>
           <td>${formatBytes(totalUsage)}</td>
         </tr>
         <tr>
-          <td>Available (${(gpuUtilization * 100).toFixed(0)}% of ${gpuVram}GB)</td>
+          <td>可用（${(gpuUtilization * 100).toFixed(0)}% × ${gpuVram}GB）</td>
           <td>${formatBytes(availableVram)}</td>
         </tr>
         <tr>
-          <td>Free Headroom</td>
+          <td>剩余空间</td>
           <td>${formatBytes(Math.max(0, availableVram - totalUsage))}</td>
         </tr>
       `;
@@ -2288,11 +2261,11 @@
       const freePercent = gpuVram > 0 ? (freeSpace / gpuVram) * 100 : 0;
 
       memoryBar.innerHTML = `
-        <div class="memory-segment weights" style="width: ${weightsPercent}%" data-tooltip="Weights: ${formatBytes(weightsPerGpu)} (${weightsPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment weights" style="width: ${weightsPercent}%" data-tooltip="权重 (${quantLabel}): ${formatBytes(weightsPerGpu)} (${weightsPercent.toFixed(1)}%)"></div>
         <div class="memory-segment kv-cache" style="width: ${kvPercent}%" data-tooltip="KV Cache: ${formatBytes(kvCacheAllocated)} (${kvPercent.toFixed(1)}%)"></div>
         <div class="memory-segment cuda-graphs" style="width: ${cudaPercent}%" data-tooltip="CUDA Graphs: ${formatBytes(cudaGraphsSize)} (${cudaPercent.toFixed(1)}%)"></div>
-        <div class="memory-segment overhead" style="width: ${overheadPercent}%" data-tooltip="Overhead: ${formatBytes(totalOverhead)} (${overheadPercent.toFixed(1)}%)"></div>
-        <div class="memory-segment free" style="width: ${freePercent}%" data-tooltip="Free: ${formatBytes(freeSpace)} (${freePercent.toFixed(1)}%)"></div>
+        <div class="memory-segment overhead" style="width: ${overheadPercent}%" data-tooltip="开销: ${formatBytes(totalOverhead)} (${overheadPercent.toFixed(1)}%)"></div>
+        <div class="memory-segment free" style="width: ${freePercent}%" data-tooltip="空闲: ${formatBytes(freeSpace)} (${freePercent.toFixed(1)}%)"></div>
       `;
 
       document.getElementById('memory-percent').textContent = usagePercent.toFixed(1) + '%';
@@ -2342,27 +2315,39 @@
       const kvComparisonStatus = document.getElementById('kv-comparison-status');
       let kvStatusClass, kvStatusText;
 
-      if (requiredTokens > maxTokensInCache) {
-        kvStatusClass = 'error';
-        const shortage = requiredTokens - maxTokensInCache;
-        kvStatusText = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Insufficient KV Cache: Need ${formatNumber(shortage)} more tokens. Reduce max-model-len or max-num-seqs`;
-      } else if (kvUtilization > 90) {
-        kvStatusClass = 'warning';
-        kvStatusText = `<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache is ${kvUtilization.toFixed(0)}% utilized - very tight, may cause issues under load`;
-      } else if (kvUtilization > 70) {
-        kvStatusClass = 'warning';
-        kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache is ${kvUtilization.toFixed(0)}% utilized - acceptable but monitor usage`;
-      } else {
-        kvStatusClass = 'ok';
-        const headroom = maxTokensInCache - requiredTokens;
-        kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Good headroom: ${formatNumber(headroom)} tokens available beyond requirements`;
-      }
+if (requiredTokens > maxTokensInCache) {
+         kvStatusClass = 'error';
+         const shortage = requiredTokens - maxTokensInCache;
+         kvStatusText = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache 不足：还需要 ${formatNumber(shortage)} 个 token。请减小 max-model-len 或 max-num-seqs`;
+       } else if (kvUtilization > 90) {
+         kvStatusClass = 'warning';
+         kvStatusText = `<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache 利用率 ${kvUtilization.toFixed(0)}% - 非常紧张，负载下可能出现问题`;
+       } else if (kvUtilization > 70) {
+         kvStatusClass = 'warning';
+         kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> KV Cache 利用率 ${kvUtilization.toFixed(0)}% - 可接受但需监控使用情况`;
+       } else {
+         kvStatusClass = 'ok';
+         const headroom = maxTokensInCache - requiredTokens;
+         kvStatusText = `<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> 预留空间充足：超出需求 ${formatNumber(headroom)} 个 token`;
+       }
 
       kvComparisonStatus.innerHTML = `<div class="status-badge ${kvStatusClass}" style="margin-top: 1rem; width: 100%;">${kvStatusText}</div>`;
 
       // Update capacity analysis
       document.getElementById('kv-available').textContent = formatBytes(kvAvailable);
       document.getElementById('bytes-per-token').textContent = bytesPerTokenKB.toFixed(1) + ' KB';
+      
+      // Generate bytes-per-token calculation formula
+      let formulaText;
+      if (attentionType === 'mla') {
+        const kvLoraRank = getEffectiveKvLoraRank();
+        formulaText = `计算过程：2(K+V) × ${kvLoraRank} kv_lora_rank × ${kvCacheDtypeBytes}B × ${numLayers}层`;
+      } else {
+        const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
+        formulaText = `计算过程：2(K+V) × ${kvHeadsPerGpu} KV_heads/GPU × ${headDim} dim × ${kvCacheDtypeBytes}B × ${numLayers}层`;
+      }
+      document.getElementById('bytes-per-token-formula').textContent = formulaText;
+      
       document.getElementById('max-tokens').textContent = formatNumber(maxTokensInCache);
       document.getElementById('max-context-single').textContent = formatNumber(maxContextSingle);
       document.getElementById('avg-context-all').textContent = formatNumber(avgContextAll);
@@ -2377,10 +2362,10 @@
           indicator.id = 'mla-mode-indicator';
           indicator.className = 'hint';
           indicator.style.cssText = 'margin-top: 0.5rem; color: var(--accent-blue);';
-          indicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
-          document.getElementById('kv-available').parentElement.after(indicator);
-        } else {
-          mlaIndicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA mode: Using compressed latent dimension (kv_lora_rank=${kvLoraRank}) for KV cache calculation`;
+indicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：使用压缩潜在维度 (kv_lora_rank=${kvLoraRank}) 计算 KV Cache`;
+           document.getElementById('kv-available').parentElement.after(indicator);
+         } else {
+           mlaIndicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：使用压缩潜在维度 (kv_lora_rank=${kvLoraRank}) 计算 KV Cache`;
           mlaIndicator.style.display = 'block';
         }
       } else if (mlaIndicator) {
@@ -2391,16 +2376,16 @@
       const statusContainer = document.getElementById('status-container');
       let statusClass, statusText;
 
-      if (totalUsage > availableVram) {
-        statusClass = 'error';
-        statusText = '<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> OOM Risk: Reduce context, seqs, or enable FP8 KV cache';
-      } else if (totalUsage > availableVram * 0.95) {
-        statusClass = 'warning';
-        statusText = '<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Tight: May OOM under load. Consider reducing max-num-seqs';
-      } else {
-        statusClass = 'ok';
-        statusText = '<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Configuration looks good';
-      }
+if (totalUsage > availableVram) {
+         statusClass = 'error';
+         statusText = '<i data-lucide="alert-triangle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> OOM 风险：请减小上下文、并发数或启用 FP8 KV Cache';
+       } else if (totalUsage > availableVram * 0.95) {
+         statusClass = 'warning';
+         statusText = '<i data-lucide="zap" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> 紧张：负载下可能 OOM。建议减小 max-num-seqs';
+       } else {
+         statusClass = 'ok';
+         statusText = '<i data-lucide="check-circle" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> 配置正常';
+       }
 
       // Calculate GiB values for vLLM comparison (1 GB decimal = 0.931323 GiB binary)
       const availableVramGiB = availableVram * 0.931323;
@@ -2409,7 +2394,7 @@
       statusContainer.innerHTML = `
         <div class="status-badge ${statusClass}">${statusText}</div>
         <p class="hint" style="margin-top: 1rem; text-align: center;">
-          <i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> vLLM comparison: Available ${availableVramGiB.toFixed(2)} GiB (binary) • KV cache ${kvAvailableGiB.toFixed(2)} GiB
+          <i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> vLLM 对比：可用 ${availableVramGiB.toFixed(2)} GiB（二进制）• KV Cache ${kvAvailableGiB.toFixed(2)} GiB
         </p>
       `;
 
@@ -2458,7 +2443,7 @@
         commandOutput.style.background = 'rgba(0, 255, 136, 0.1)';
         
         // Show toast notification
-        showToast('Command copied to clipboard!', 'success');
+        showToast('命令已复制到剪贴板！', 'success');
         
         setTimeout(() => {
           commandOutput.style.cursor = originalCursor;
@@ -2466,7 +2451,7 @@
         }, 1000);
       }).catch(err => {
         console.error('Failed to copy command:', err);
-        showToast('Failed to copy command', 'error');
+        showToast('复制命令失败', 'error');
       });
     }
 
@@ -2560,9 +2545,6 @@
           cudaGraphs: inputs.cudaGraphs.value,
           overheadPadding: inputs.overheadPadding.value,
           quantMethod: quantInputs.method.value,
-          quantBits: quantInputs.bits.value,
-          baseParams: quantInputs.baseParams.value,
-          groupSize: quantInputs.groupSize.value,
           attentionType: inputs.attentionType.value,
           kvLoraRank: inputs.kvLoraRank.value,
           timestamp: Date.now()
@@ -2603,7 +2585,7 @@
             presetSelect.disabled = true;
             const option = document.createElement('option');
             option.value = '';
-            option.textContent = 'Enter ID below';
+option.textContent = '在下方输入 ID';
             presetSelect.appendChild(option);
           } else {
             presetSelect.disabled = false;
@@ -2639,9 +2621,6 @@
         if (config.cudaGraphs) inputs.cudaGraphs.value = config.cudaGraphs;
         if (config.overheadPadding) inputs.overheadPadding.value = config.overheadPadding;
         if (config.quantMethod) quantInputs.method.value = config.quantMethod;
-        if (config.quantBits) quantInputs.bits.value = config.quantBits;
-        if (config.baseParams) quantInputs.baseParams.value = config.baseParams;
-        if (config.groupSize) quantInputs.groupSize.value = config.groupSize;
         if (config.attentionType) inputs.attentionType.value = config.attentionType;
         if (config.kvLoraRank) inputs.kvLoraRank.value = config.kvLoraRank;
 
