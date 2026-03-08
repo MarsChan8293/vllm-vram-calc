@@ -1025,11 +1025,8 @@
               <label for="model-vendor">Vendor</label>
               <select id="model-vendor" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
                 <option value="DeepSeek">DeepSeek</option>
-                <option value="Meta">Meta (Llama)</option>
-                <option value="Alibaba">Alibaba (Qwen)</option>
-                <option value="Mistral">Mistral</option>
-                <option value="Google">Google (Gemma)</option>
-                <option value="Microsoft">Microsoft (Phi)</option>
+                <option value="Qwen">Qwen</option>
+                <option value="GLM">GLM</option>
                 <option value="Custom">Custom / Other</option>
               </select>
             </div>
@@ -1364,37 +1361,16 @@
     // Built-in Models Data
     const BUILTIN_MODELS = {
       'DeepSeek': [
-        { name: 'DeepSeek-V3 (671B)', id: 'deepseek-ai/DeepSeek-V3' },
-        { name: 'DeepSeek-R1 (671B)', id: 'deepseek-ai/DeepSeek-R1' },
-        { name: 'DeepSeek-V2.5 (236B)', id: 'deepseek-ai/DeepSeek-V2.5' },
-        { name: 'DeepSeek-Coder-V2 (236B)', id: 'deepseek-ai/DeepSeek-Coder-V2-Instruct' },
+        { name: 'DeepSeek-V3.2', id: 'deepseek-ai/DeepSeek-V3.2' },
+        { name: 'DeepSeek-R1', id: 'deepseek-ai/DeepSeek-R1' },
       ],
-      'Meta': [
-        { name: 'Llama-3.3-70B', id: 'meta-llama/Llama-3.3-70B-Instruct' },
-        { name: 'Llama-3.1-405B', id: 'meta-llama/Llama-3.1-405B-Instruct' },
-        { name: 'Llama-3.1-70B', id: 'meta-llama/Llama-3.1-70B-Instruct' },
-        { name: 'Llama-3.1-8B', id: 'meta-llama/Llama-3.1-8B-Instruct' },
+      'Qwen': [
+        { name: 'Qwen3-32B', id: 'Qwen/Qwen3-32B' },
+        { name: 'Qwen3-14B', id: 'Qwen/Qwen3-14B' },
       ],
-      'Alibaba': [
-        { name: 'Qwen2.5-72B', id: 'Qwen/Qwen2.5-72B-Instruct' },
-        { name: 'Qwen2.5-32B', id: 'Qwen/Qwen2.5-32B-Instruct' },
-        { name: 'Qwen2.5-14B', id: 'Qwen/Qwen2.5-14B-Instruct' },
-        { name: 'Qwen2.5-7B', id: 'Qwen/Qwen2.5-7B-Instruct' },
-      ],
-      'Mistral': [
-        { name: 'Mistral-Large-2 (123B)', id: 'mistralai/Mistral-Large-Instruct-2407' },
-        { name: 'Mixtral-8x22B', id: 'mistralai/Mixtral-8x22B-Instruct-v0.1' },
-        { name: 'Mixtral-8x7B', id: 'mistralai/Mixtral-8x7B-Instruct-v0.1' },
-      ],
-      'Google': [
-        { name: 'Gemma-2-27B', id: 'google/gemma-2-27b-it' },
-        { name: 'Gemma-2-9B', id: 'google/gemma-2-9b-it' },
-        { name: 'Gemma-2-2B', id: 'google/gemma-2-2b-it' },
-      ],
-      'Microsoft': [
-        { name: 'Phi-4 (14B)', id: 'microsoft/phi-4' },
-        { name: 'Phi-3.5-MoE (16x3.8B)', id: 'microsoft/Phi-3.5-MoE-instruct' },
-        { name: 'Phi-3-Mini (3.8B)', id: 'microsoft/Phi-3-mini-128k-instruct' },
+      'GLM': [
+        { name: 'GLM-5', id: 'zai-org/GLM-5' },
+        { name: 'GLM-4.7', id: 'zai-org/GLM-4.7' },
       ],
     };
 
