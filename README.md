@@ -38,9 +38,12 @@
 | INT4 | 0.5 | 4 位整数 |
 | FP4 | 0.5 | 4 位浮点 |
 
-**计算公式**：`模型权重 (GB) = 参数量 (B) × 字节/参数`
+**默认估算公式**：`模型权重 (GB) = 参数量 (B) × 字节/参数`
 
-**注意**：当前实现为简化估算，未包含量化元数据开销（scale/zero-point 等）。对于 AWQ、GPTQ 等分组量化方法，实际模型大小可能略高于估算值（通常 +3-5%）。
+**当前实现**：
+- 当 HuggingFace 提供真实 checkpoint 元数据时，优先使用真实权重大小而不是纯参数量估算
+- 当用户手动切换量化方式时，回退到参数量估算
+- 对 INT4/FP4 的参数量估算，会加入少量分组量化元数据开销近似（scale/zero-point）
 
 **HuggingFace 标签映射**：从模型标签自动检测量化类型，映射到对应精度：
 - `AWQ`/`GPTQ`/`BNB`/`4BIT` → INT4
@@ -164,6 +167,8 @@ total_bytes_per_token = bytes_per_token_per_layer × num_layers
    - CUDA graphs（启用时按激活缓冲区 × 10 计算）
    - 框架开销（可配置）
 2. **动态 KV Cache**：在剩余空间内填充，直至达到 `gpu_memory_utilization` 限制
+
+运行时激活与 CUDA graphs 开销会优先使用模型真实 `hidden_size`；只有在缺失该字段时，才回退到 `attention_heads × head_dim` 的近似。
 
 ## 浏览器兼容性
 
