@@ -966,7 +966,7 @@
                 <option value="17.2">RTX 4080 (16GB)</option>
                 <option value="25.8">RTX 4090 (24GB)</option>
                 <option value="25.4">RTX 3090 (24GB)</option>
-                <option value="34.2" selected>RTX 5090 (32GB)</option>
+                <option value="34.2">RTX 5090 (32GB)</option>
               </optgroup>
               <optgroup label="专业级 GPU">
                 <option value="51.5">RTX 6000 Ada (48GB)</option>
@@ -981,7 +981,7 @@
                 <option value="96.0">RTX Pro 6000 Max (96GB)</option>
                 <option value="84.0">RTX Pro 6000D (84GB)</option>
                 <option value="150.5">H200 (141GB)</option>
-                <option value="64.0">NPU 910B (64GB)</option>
+                <option value="64.0" selected>NPU 910B (64GB)</option>
                 <option value="128.0">NPU 910C (128GB)</option>
               </optgroup>
             </select>
@@ -991,7 +991,7 @@
           <div class="input-row">
             <div class="form-group">
               <label for="gpu-vram">每卡显存 (GB)</label>
-              <input type="number" id="gpu-vram" value="34.2" min="1" max="192" step="0.1"
+              <input type="number" id="gpu-vram" value="64.0" min="1" max="192" step="0.1"
                 aria-label="VRAM per GPU in decimal gigabytes"
                 aria-describedby="gpu-vram-hint">
               <p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes（十进制）</p>
@@ -1092,8 +1092,8 @@
             <div class="form-group">
               <label for="activation-dtype">激活数据类型</label>
               <select id="activation-dtype">
-                <option value="2" selected>BF16/FP16 (2 bytes)</option>
-                <option value="1">FP8 (1 byte)</option>
+                <option value="2">BF16/FP16 (2 bytes)</option>
+                <option value="1" selected>FP8/INT8 (1 byte)</option>
               </select>
             </div>
           </div>
@@ -1126,8 +1126,8 @@
 <div class="form-group">
 <label for="quant-method">权重量化</label>
                 <select id="quant-method">
-                  <option value="none" selected>BF16 (2 字节/参数)</option>
-                  <option value="int8">INT8 (1 字节/参数)</option>
+                  <option value="none">BF16 (2 字节/参数)</option>
+                  <option value="int8" selected>INT8 (1 字节/参数)</option>
                   <option value="fp8">FP8 (1 字节/参数)</option>
                   <option value="int4">INT4 (0.5 字节/参数)</option>
                   <option value="fp4">FP4 (0.5 字节/参数)</option>
@@ -1254,9 +1254,9 @@
           </div>
 
           <div class="results-section">
-<div class="section-title">KV Cache：已分配 vs 需求</div>
+<div class="section-title">KV Cache：可分配 vs 需求</div>
              <div class="result-row">
-               <span class="result-label">已分配 KV Cache 空间</span>
+               <span class="result-label">可分配 KV Cache 空间（每卡）</span>
                <span class="result-value" id="kv-allocated-display">-</span>
              </div>
              <div class="result-row">
@@ -2396,7 +2396,7 @@ const missingFields = [];
           <td></td>
         </tr>
         <tr>
-          <td>KV Cache 池（已分配）</td>
+          <td>KV Cache 池（可分配）</td>
           <td>${formatBytes(kvCacheAllocated)}</td>
         </tr>
         <tr>
