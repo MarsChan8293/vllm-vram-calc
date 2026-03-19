@@ -1716,17 +1716,185 @@
       }
     }
 
-    function estimateModelParams(modelInfo, config) {
-      // Try to get parameter count from safetensors info
-      if (modelInfo.safetensors?.parameters) {
-        const params = Object.values(modelInfo.safetensors.parameters).reduce((a, b) => a + b, 0);
-        return params / 1e9; // Convert to billions (B)
+    const KNOWN_MODEL_PARAMS = {
+      'deepseek-v3': 671,
+      'deepseekv3': 671,
+      'deepseek-v2': 236,
+      'deepseekv2': 236,
+      'deepseek-v2.5': 236,
+      'deepseek-r1': 671,
+      'deepseekr1': 671,
+      'llama-3.1-405b': 405,
+      'llama-3.1-70b': 70,
+      'llama-3.1-8b': 8,
+      'llama-3-70b': 70,
+      'llama-3-8b': 8,
+      'llama-2-70b': 70,
+      'llama-2-13b': 13,
+      'llama-2-7b': 7,
+      'qwen2.5-72b': 72,
+      'qwen2.5-32b': 32,
+      'qwen2.5-14b': 14,
+      'qwen2.5-7b': 7,
+      'qwen3-32b': 32,
+      'qwen3-14b': 14,
+      'mistral-7b': 7,
+      'mixtral-8x7b': 47,
+      'mixtral-8x22b': 141,
+      'gemma-7b': 7,
+      'gemma-2-27b': 27,
+      'gemma-2-9b': 9,
+      'phi-3-medium': 14,
+      'phi-3-mini': 3.8,
+      'command-r': 35,
+      'command-r-plus': 104,
+    };
+
+    function estimateModelParamsFromConfig(config) {
+      if (!config) return null;
+
+      const hiddenSize = config.hidden_size || config.d_model || config.n_embd || config.dim;
+      const numLayers = config.num_hidden_layers || config.n_layer || config.num_layers || config.n_layers;
+      const vocabSize = config.vocab_size;
+      const intermediateSize = config.intermediate_size;
+
+      if (!hiddenSize || !numLayers) return null;
+
+      const archLower = (config.architectures?.[0] || '').toLowerCase();
+      const isMoe = config.n_routed_experts || 
+                    config.num_experts || 
+                    archLower.includes('moe') ||
+                    archLower.includes('mixtral') ||
+                    archLower.includes('deepseekv3') ||
+                    archLower.includes('deepseekv2');
+
+      if (isMoe) {
+        return estimateMoeParams(config);
       }
 
-      // Fallback: try to parse from model name
+      let params = 0;
+
+      const attnHeads = config.num_attention_heads || config.n_head || 1;
+      const kvHeads = config.num_key_value_heads || config.num_kv_heads || attnHeads;
+      const headDim = config.head_dim || (hiddenSize / attnHeads);
+
+      params += numLayers * (4 * hiddenSize * hiddenSize);
+      
+      if (intermediateSize) {
+        params += numLayers * (3 * hiddenSize * intermediateSize);
+      } else {
+        const typicalIntermediate = hiddenSize * 4;
+        params += numLayers * (3 * hiddenSize * typicalIntermediate);
+      }
+
+      params += numLayers * (2 * hiddenSize);
+
+      if (vocabSize) {
+        params += vocabSize * hiddenSize;
+      }
+
+      if (params > 0) {
+        return params / 1e9;
+      }
+
+      return null;
+    }
+
+    function estimateMoeParams(config) {
+      const hiddenSize = config.hidden_size;
+      const numLayers = config.num_hidden_layers || config.num_layers;
+      const vocabSize = config.vocab_size;
+      const intermediateSize = config.intermediate_size;
+      
+      const nRoutedExperts = config.n_routed_experts || config.num_experts || 0;
+      const nSharedExperts = config.n_shared_experts || 1;
+      const moeIntermediateSize = config.moe_intermediate_size || intermediateSize;
+      const firstKDenseReplace = config.first_k_dense_replace || 0;
+
+      if (!hiddenSize || !numLayers) return null;
+
+      let params = 0;
+
+      const attnHeads = config.num_attention_heads || 128;
+      const qkNopeHeadDim = config.qk_nope_head_dim || config.head_dim || (hiddenSize / attnHeads);
+      const qkRopeHeadDim = config.qk_rope_head_dim || 64;
+      const kvLoraRank = config.kv_lora_rank;
+      const qLoraRank = config.q_lora_rank;
+      const vHeadDim = config.v_head_dim || qkNopeHeadDim;
+
+      const isMla = kvLoraRank && qLoraRank;
+      const numNextnPredictLayers = config.num_nextn_predict_layers || 0;
+
+      for (let layer = 0; layer < numLayers + numNextnPredictLayers; layer++) {
+        if (isMla) {
+          params += hiddenSize * kvLoraRank;
+          params += kvLoraRank * (qkNopeHeadDim + qkRopeHeadDim) * attnHeads;
+          params += kvLoraRank;
+          params += qLoraRank * hiddenSize;
+          params += attnHeads * qLoraRank;
+          params += attnHeads * qLoraRank * (qkNopeHeadDim + qkRopeHeadDim);
+          params += attnHeads * qkNopeHeadDim;
+          params += hiddenSize * kvLoraRank;
+        } else {
+          const headDim = config.head_dim || (hiddenSize / attnHeads);
+          params += hiddenSize * headDim * attnHeads;
+          params += hiddenSize * headDim * (config.num_key_value_heads || attnHeads);
+          params += headDim * hiddenSize * attnHeads;
+          params += headDim * hiddenSize * (config.num_key_value_heads || attnHeads);
+        }
+        
+        if (layer < firstKDenseReplace && intermediateSize) {
+          params += hiddenSize * intermediateSize;
+          params += intermediateSize * hiddenSize;
+        } else if (moeIntermediateSize && nRoutedExperts > 0) {
+          const expertParams = hiddenSize * moeIntermediateSize * 3;
+          params += nRoutedExperts * expertParams;
+          if (nSharedExperts > 0) {
+            params += nSharedExperts * expertParams;
+          }
+        }
+      }
+
+      if (vocabSize) {
+        params += vocabSize * hiddenSize;
+      }
+
+      if (params > 0) {
+        return params / 1e9;
+      }
+
+      return null;
+    }
+
+    function estimateModelParams(modelInfo, config, safetensorsIndex = null) {
+      if (modelInfo.safetensors?.parameters) {
+        const params = modelInfo.safetensors.parameters.total;
+        if (params && Number.isFinite(params)) {
+          return params / 1e9;
+        }
+        const dtypeParams = Object.entries(modelInfo.safetensors.parameters)
+          .filter(([key]) => key !== 'total')
+          .reduce((a, [, b]) => a + b, 0);
+        if (dtypeParams > 0) {
+          return dtypeParams / 1e9;
+        }
+      }
+
+      const modelIdLower = (modelInfo.modelId || '').toLowerCase();
+      for (const [key, value] of Object.entries(KNOWN_MODEL_PARAMS)) {
+        if (modelIdLower.includes(key)) {
+          return value;
+        }
+      }
+
       const nameMatch = modelInfo.modelId?.match(/(\d+(?:\.\d+)?)[bB]/);
       if (nameMatch) {
         return parseFloat(nameMatch[1]);
+      }
+
+      const configEstimate = estimateModelParamsFromConfig(config);
+      if (configEstimate) {
+        return configEstimate;
       }
 
       return null;
@@ -1744,12 +1912,13 @@
         hiddenSize: null,
         maxContext: null,
         paramsB: null,
+        paramsSource: null,
         quantization: null,
         detectedQuantMethod: 'none',
         checkpointBytes: null,
         checkpointSource: null,
-        attentionType: null,  // 'mha' | 'gqa' | 'mla'
-        kvLoraRank: null,     // For MLA models
+        attentionType: null,
+        kvLoraRank: null,
         tags: modelInfo.tags || []
       };
 
@@ -1803,7 +1972,19 @@
       }
 
       // Estimate parameter count
-      result.paramsB = estimateModelParams(modelInfo, config);
+      result.paramsB = estimateModelParams(modelInfo, config, safetensorsIndex);
+      result.paramsSource = null;
+      if (modelInfo.safetensors?.parameters) {
+        result.paramsSource = 'HF API safetensors.parameters';
+      } else if (safetensorsIndex?.metadata?.total_size) {
+        result.paramsSource = 'safetensors.index.json total_size';
+      } else if (KNOWN_MODEL_PARAMS[(modelInfo.modelId || '').toLowerCase().split('/')[1]?.split('-')[0]]) {
+        result.paramsSource = 'Known model mapping';
+      } else if (modelInfo.modelId?.match(/(\d+(?:\.\d+)?)[bB]/)) {
+        result.paramsSource = 'Model name parsing';
+      } else if (result.paramsB) {
+        result.paramsSource = 'Config.json estimation';
+      }
 
       const checkpointBytesFromSafetensors = estimateCheckpointBytesFromSafetensorsParameters(modelInfo.safetensors?.parameters);
       if (checkpointBytesFromSafetensors) {
@@ -1921,7 +2102,7 @@
            </div>
 <div class="model-info-item">
               <span class="label">参数量</span>
-              <span class="value">${modelConfig.paramsB ? modelConfig.paramsB.toFixed(1) + ' B' : '?'}</span>
+              <span class="value">${modelConfig.paramsB ? modelConfig.paramsB.toFixed(1) + ' B' : '?'}${modelConfig.paramsSource ? ` <span style="font-size:0.7em;color:var(--text-muted);">(${modelConfig.paramsSource})</span>` : ''}</span>
             </div>
             <div class="model-info-item">
               <span class="label">Checkpoint</span>
