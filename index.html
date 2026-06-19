@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,937 +7,167 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root {
-      --bg-primary: #0a0a0f;
-      --bg-secondary: #12121a;
-      --bg-tertiary: #1a1a24;
-      --bg-card: #16161f;
-      --border: #2a2a3a;
-      --border-highlight: #3a3a4a;
-      --text-primary: #e8e8ed;
-      --text-secondary: #9090a0;
-      --text-muted: #606070;
-      --accent-green: #00ff88;
-      --accent-green-dim: #00cc6a;
-      --accent-red: #ff4466;
-      --accent-yellow: #ffcc00;
-      --accent-blue: #4488ff;
-      --accent-purple: #aa66ff;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Space Grotesk', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 3rem;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .subtitle {
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-    }
-
-    @media (max-width: 1200px) {
-      .container {
-        padding: 1.5rem;
-      }
-    }
-
-    @media (max-width: 1000px) {
-      .grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-
-      .panel {
-        padding: 1.25rem;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        padding: 1rem;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      .subtitle {
-        font-size: 1rem;
-      }
-
-      header {
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-      }
-
-      .panel {
-        padding: 1rem;
-      }
-
-      .input-row {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-      }
-
-      .panel-header {
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-      }
-
-      .panel-title {
-        font-size: 1rem;
-      }
-
-      .panel-icon {
-        width: 28px;
-        height: 28px;
-      }
-
-      .presets {
-        gap: 0.4rem;
-      }
-
-      .preset-btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.8rem;
-      }
-
-      .hf-input-row {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-
-      .hf-fetch-btn {
-        width: 100%;
-        padding: 0.75rem;
-      }
-
-      .breakdown-table th,
-      .breakdown-table td {
-        padding: 0.5rem 0.4rem;
-        font-size: 0.8rem;
-      }
-
-      .memory-legend {
-        gap: 0.5rem;
-      }
-
-      .legend-item {
-        font-size: 0.75rem;
-      }
-
-      .command-output {
-        font-size: 0.75rem;
-        padding: 0.75rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 0.75rem;
-      }
-
-      h1 {
-        font-size: 1.75rem;
-      }
-
-      .panel {
-        padding: 0.875rem;
-      }
-
-      .result-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.25rem;
-      }
-
-      .model-info-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-      transition: box-shadow 0.2s ease;
-    }
-
-    .panel:hover {
-      box-shadow: 0 6px 32px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
-    }
-
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .panel-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-    }
-
-    .panel-icon.gpu { background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-blue) 50%); }
-    .panel-icon.model { background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%); }
-    .panel-icon.config { background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-red) 100%); }
-    .panel-icon.result { background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-dim) 100%); }
-
-    .panel-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group:last-child {
-      margin-bottom: 0;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-    }
-
-    input[type="number"], select {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input[type="number"]:focus, select:focus {
-      outline: none;
-      border-color: var(--accent-green);
-      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
-    }
-
-    /* Keyboard focus indicators for accessibility (WCAG 2.1 AA compliance) */
-    input[type="number"]:focus-visible,
-    select:focus-visible,
-    button:focus-visible,
-    a:focus-visible {
-      outline: 2px solid var(--color-success);
-      outline-offset: 2px;
-    }
-
-    input[type="number"]::-webkit-inner-spin-button {
-      opacity: 1;
-    }
-
-    .input-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .hint {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* Results Panel */
-    .results-section {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .results-section:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-
-    .section-title {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
-    }
-
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0;
-    }
-
-    .result-label {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .result-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-    .result-value.highlight {
-      color: var(--accent-green);
-      font-size: 1.1rem;
-    }
-
-    .result-value.warning {
-      color: var(--accent-yellow);
-    }
-
-    .result-value.error {
-      color: var(--accent-red);
-    }
-
-    /* Memory Bar */
-    .memory-bar-container {
-      margin-top: 1.5rem;
-    }
-
-    .memory-bar-label {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-      font-size: 0.85rem;
-    }
-
-    .memory-bar {
-      height: 24px;
-      background: var(--bg-secondary);
-      border-radius: 6px;
-      overflow: hidden;
-      display: flex;
-      position: relative;
-    }
-
-    .memory-segment {
-      height: 100%;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-
-    .memory-segment.weights { background: var(--accent-blue); cursor: pointer; }
-    .memory-segment.kv-cache { background: var(--accent-purple); cursor: pointer; }
-    .memory-segment.cuda-graphs { background: var(--accent-yellow); cursor: pointer; }
-    .memory-segment.overhead { background: var(--accent-red); opacity: 0.7; cursor: pointer; }
-    .memory-segment.free { background: var(--accent-green); opacity: 0.3; cursor: default; }
-
-    /* Memory Bar Tooltip */
-    .memory-segment {
-      position: relative;
-    }
-
-    .memory-segment::before {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 6px 10px;
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      font-size: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
-      border-radius: 6px;
-      white-space: nowrap;
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    .memory-segment::after {
-      content: '';
-      position: absolute;
-      bottom: calc(100% + 3px);
-      left: 50%;
-      transform: translateX(-50%);
-      border: 5px solid transparent;
-      border-top-color: var(--bg-tertiary);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s ease, visibility 0.2s ease;
-      z-index: 100;
-    }
-
-    .memory-segment:hover::before,
-    .memory-segment:hover::after {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .memory-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
-
-    .legend-color.weights { background: var(--accent-blue); }
-    .legend-color.kv-cache { background: var(--accent-purple); }
-    .legend-color.cuda-graphs { background: var(--accent-yellow); }
-    .legend-color.overhead { background: var(--accent-red); opacity: 0.7; }
-    .legend-color.free { background: var(--accent-green); opacity: 0.3; }
-
-    /* Status Badge */
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-top: 1rem;
-    }
-
-    .status-badge.ok {
-      background: rgba(0, 255, 136, 0.1);
-      color: var(--accent-green);
-      border: 1px solid rgba(0, 255, 136, 0.3);
-    }
-
-    .status-badge.warning {
-      background: rgba(255, 204, 0, 0.1);
-      color: var(--accent-yellow);
-      border: 1px solid rgba(255, 204, 0, 0.3);
-    }
-
-    .status-badge.error {
-      background: rgba(255, 68, 102, 0.1);
-      color: var(--accent-red);
-      border: 1px solid rgba(255, 68, 102, 0.3);
-    }
-
-    /* Command Output */
-    .command-output {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 1.5rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      line-height: 1.6;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .command-output .flag {
-      color: var(--accent-green);
-    }
-
-    .command-output .value {
-      color: var(--accent-yellow);
-    }
-
-    /* Presets */
-    .presets {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .preset-btn {
-      padding: 0.5rem 1rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .preset-btn:hover {
-      border-color: var(--accent-green);
-      color: var(--text-primary);
-    }
-
-    .preset-btn.active {
-      background: rgba(0, 255, 136, 0.1);
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-    }
-
-    /* Breakdown table */
-    .breakdown-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    .breakdown-table th,
-    .breakdown-table td {
-      padding: 0.6rem 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-    }
-
-    .breakdown-table th {
-      color: var(--text-muted);
-      font-weight: 500;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .breakdown-table td {
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .breakdown-table td:last-child {
-      text-align: right;
-    }
-
-    .breakdown-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .breakdown-table .total-row td {
-      font-weight: 600;
-      color: var(--accent-green);
-      border-top: 2px solid var(--border);
-    }
-
-    /* HuggingFace Integration */
-    .hf-input-row {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .hf-input-row input[type="text"] {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .hf-input-row input[type="text"]:focus {
-      outline: none;
-      border-color: var(--accent-green);
-      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
-    }
-
-    .hf-input-row input[type="text"]::placeholder {
-      color: var(--text-muted);
-    }
-
-    .hf-fetch-btn {
-      padding: 0.75rem 1.25rem;
-      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-dim) 100%);
-      border: none;
-      border-radius: 8px;
-      color: var(--bg-primary);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 80px;
-    }
-
-    .hf-fetch-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
-    }
-
-    .hf-fetch-btn:active {
-      transform: translateY(0);
-    }
-
-    .hf-fetch-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .hf-fetch-btn .spinner {
-      width: 18px;
-      height: 18px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .hint.success {
-      color: var(--accent-green);
-    }
-
-    .hint.error {
-      color: var(--accent-red);
-    }
-
-    .hint.loading {
-      color: var(--accent-yellow);
-    }
-
-    /* 内置模型快速选择 */
-    .builtin-presets-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .vendor-select-row {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .vendor-select-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .vendor-label {
-      min-width: 80px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .builtin-model-select {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-primary);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .builtin-model-select:hover {
-      border-color: var(--accent-purple);
-    }
-
-    .builtin-model-select:focus {
-      outline: none;
-      border-color: var(--accent-purple);
-      box-shadow: 0 0 0 3px rgba(170, 102, 255, 0.2);
-    }
-
-    @media (max-width: 768px) {
-      .vendor-select-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-      }
-      
-      .vendor-label {
-        min-width: auto;
-      }
-    }
-
-    /* Model info card */
-    .model-info-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .model-info-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .model-info-icon {
-      font-size: 1.5rem;
-    }
-
-    .model-info-name {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--text-primary);
-    }
-
-    .model-info-author {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .model-info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem 1rem;
-    }
-
-    .model-info-item {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-    }
-
-    .model-info-item .label {
-      color: var(--text-muted);
-    }
-
-    .model-info-item .value {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--text-secondary);
-    }
-
-    .model-info-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 0.75rem;
-    }
-
-    .model-tag {
-      padding: 0.2rem 0.5rem;
-      background: var(--bg-tertiary);
-      border-radius: 4px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .model-tag.quant {
-      background: rgba(170, 102, 255, 0.2);
-      color: var(--accent-purple);
-    }
-
-    .model-tag.arch {
-      background: rgba(68, 136, 255, 0.2);
-      color: var(--accent-blue);
-    }
-
-    /* Section Divider */
-    .section-divider {
-      display: flex;
-      align-items: center;
-      margin: 1.5rem 0 1rem 0;
-      gap: 1rem;
-    }
-
-    .section-divider::before,
-    .section-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .section-divider span {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-
-    /* Collapsible Section */
-    .section-divider.collapsible {
-      cursor: pointer;
-      user-select: none;
-      transition: color 0.2s ease;
-    }
-
-    .section-divider.collapsible:hover span {
-      color: var(--text-primary);
-    }
-
-    .section-divider.collapsible .toggle-icon {
-      transition: transform 0.2s ease;
-    }
-
-    .section-divider.collapsible.collapsed .toggle-icon {
-      transform: rotate(-90deg);
-    }
-
-    #quant-section-content {
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-      max-height: 500px;
-      opacity: 1;
-    }
-
-    #quant-section-content.collapsed {
-      max-height: 0;
-      opacity: 0;
-    }
-
-    /* MoE specific styling */
-    .moe-section {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
-    }
-
-    .moe-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .moe-toggle input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent-green);
-      cursor: pointer;
-    }
-
-    .moe-toggle label {
-      margin-bottom: 0;
-      cursor: pointer;
-      color: var(--text-primary);
-    }
-
-    .moe-fields {
-      display: none;
-    }
-
-    .moe-fields.visible {
-      display: block;
-    }
-
-    /* KV Cache Comparison Bar */
-    .kv-comparison-bar-container {
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .kv-comparison-bar {
-      height: 20px;
-      background: var(--bg-secondary);
-      border-radius: 6px;
-      overflow: hidden;
-      position: relative;
-      border: 1px solid var(--border);
-    }
-
-    .kv-comparison-fill {
-      height: 100%;
-      transition: width 0.3s ease, background 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--bg-primary);
-      position: relative;
-    }
-
-    .kv-comparison-fill.ok {
-      background: linear-gradient(90deg, var(--accent-green), var(--accent-green-dim));
-    }
-
-    .kv-comparison-fill.warning {
-      background: linear-gradient(90deg, var(--accent-yellow), #e6b800);
-    }
-
-    .kv-comparison-fill.error {
-      background: linear-gradient(90deg, var(--accent-red), #cc3355);
-    }
-
-    .kv-comparison-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 0.3rem;
-    }
+    :root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a24;--bg-card:#16161f;--border:#2a2a3a;--border-highlight:#3a3a4a;--text-primary:#e8e8ed;--text-secondary:#9090a0;--text-muted:#606070;--accent-green:#00ff88;--accent-green-dim:#00cc6a;--accent-red:#ff4466;--accent-yellow:#ffcc00;--accent-blue:#4488ff;--accent-purple:#aa66ff}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Space Grotesk',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.5}
+    .container{max-width:1500px;margin:0 auto;padding:2rem}
+
+    header{text-align:center;margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+    h1{font-size:2.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem;background:linear-gradient(135deg,var(--accent-green),var(--accent-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .subtitle{color:var(--text-secondary);font-size:1.1rem}
+
+    /* ===== 3×2 GRID ===== */
+    .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;grid-template-areas:"model-input model-params""vllm-input kvcache-calc""hardware-input memory-breakdown";gap:1.5rem 2rem}
+    .area-model-input{grid-area:model-input}.area-model-params{grid-area:model-params}
+    .area-vllm-input{grid-area:vllm-input}.area-kvcache-calc{grid-area:kvcache-calc}
+    .area-hardware-input{grid-area:hardware-input}.area-memory-breakdown{grid-area:memory-breakdown}
+
+    @media(max-width:1200px){.container{padding:1.5rem}}
+    @media(max-width:1000px){.grid{grid-template-columns:1fr;grid-template-areas:"model-input""model-params""vllm-input""kvcache-calc""hardware-input""memory-breakdown";gap:1.25rem}.panel{padding:1.25rem}}
+    @media(max-width:768px){.container{padding:1rem}h1{font-size:2rem}.subtitle{font-size:1rem}header{margin-bottom:2rem;padding-bottom:1.5rem}.panel{padding:1rem}.input-row{grid-template-columns:1fr;gap:.75rem}.panel-header{margin-bottom:1rem;padding-bottom:.75rem}.panel-title{font-size:1rem}.panel-icon{width:28px;height:28px}.presets{gap:.4rem}.preset-btn{padding:.4rem .75rem;font-size:.8rem}.hf-input-row{flex-direction:column;gap:.75rem}.hf-fetch-btn{width:100%;padding:.75rem}.breakdown-table th,.breakdown-table td{padding:.5rem .4rem;font-size:.8rem}.memory-legend{gap:.5rem}.legend-item{font-size:.75rem}.selection-grid{grid-template-columns:1fr}}
+    @media(max-width:480px){.container{padding:.75rem}h1{font-size:1.75rem}.panel{padding:.875rem}.result-row{flex-direction:column;align-items:flex-start;gap:.25rem}.model-info-grid{grid-template-columns:1fr}}
+
+    /* ===== PANEL ===== */
+    .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;box-shadow:0 4px 24px rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.2);transition:box-shadow .2s}
+    .panel:hover{box-shadow:0 6px 32px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.25)}
+    .panel-output{border-left:3px solid var(--border-highlight)}
+    .area-model-params .panel-output{border-left-color:var(--accent-blue)}
+    .area-kvcache-calc .panel-output{border-left-color:var(--accent-purple)}
+    .area-memory-breakdown .panel-output{border-left-color:var(--accent-green)}
+    .panel-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+    .panel-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+    .panel-icon.gpu{background:linear-gradient(135deg,var(--accent-green),var(--accent-blue) 50%)}
+    .panel-icon.model{background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue))}
+    .panel-icon.config{background:linear-gradient(135deg,var(--accent-yellow),var(--accent-red))}
+    .panel-icon.result{background:linear-gradient(135deg,var(--accent-green),var(--accent-green-dim))}
+    .panel-icon.kvcache{background:linear-gradient(135deg,var(--accent-purple),#7744cc)}
+    .panel-icon.info{background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple))}
+    .panel-title{font-size:1.1rem;font-weight:600}
+
+    /* ===== FORMS ===== */
+    .form-group{margin-bottom:1.25rem}.form-group:last-child{margin-bottom:0}
+    label{display:block;font-size:.85rem;font-weight:500;color:var(--text-secondary);margin-bottom:.5rem}
+    input[type="number"],select{width:100%;padding:.75rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:.95rem;transition:border-color .2s,box-shadow .2s}
+    input[type="number"]:focus,select:focus{outline:none;border-color:var(--accent-green);box-shadow:0 0 0 3px rgba(0,255,136,.1)}
+    input[type="number"]:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent-green);outline-offset:2px}
+    input[type="number"]::-webkit-inner-spin-button{opacity:1}
+    .input-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .hint{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;font-family:'JetBrains Mono',monospace}
+
+    /* ===== RESULTS ===== */
+    .results-section{margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+    .results-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+    .section-title{font-size:.8rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}
+    .result-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0}
+    .result-label{color:var(--text-secondary);font-size:.9rem}
+    .result-value{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.95rem}
+    .result-value.highlight{color:var(--accent-green);font-size:1.1rem}
+    .result-value.warning{color:var(--accent-yellow)}
+    .result-value.error{color:var(--accent-red)}
+
+    /* ===== KV HERO ===== */
+    .kv-total-hero{text-align:center;padding:1.25rem 0;margin-bottom:1.5rem;border-bottom:1px solid var(--border)}
+    .kv-total-hero .kv-total-label{font-size:.8rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem}
+    .kv-total-hero .kv-total-number{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+    .kv-total-hero .kv-total-sub{font-size:.75rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:.25rem}
+
+    /* ===== MEMORY BAR ===== */
+    .memory-bar-container{margin-top:1.5rem}
+    .memory-bar-label{display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.85rem}
+    .memory-bar{height:24px;background:var(--bg-secondary);border-radius:6px;overflow:hidden;display:flex;position:relative}
+    .memory-segment{height:100%;transition:width .3s;position:relative}
+    .memory-segment.weights{background:var(--accent-blue);cursor:pointer}
+    .memory-segment.kv-cache{background:var(--accent-purple);cursor:pointer}
+    .memory-segment.cuda-graphs{background:var(--accent-yellow);cursor:pointer}
+    .memory-segment.overhead{background:var(--accent-red);opacity:.7;cursor:pointer}
+    .memory-segment.free{background:var(--accent-green);opacity:.3;cursor:default}
+    .memory-segment::before{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);padding:6px 10px;background:var(--bg-tertiary);color:var(--text-primary);font-size:.75rem;font-family:'JetBrains Mono',monospace;border-radius:6px;white-space:nowrap;z-index:100;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+    .memory-segment::after{content:'';position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--bg-tertiary);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:100}
+    .memory-segment:hover::before,.memory-segment:hover::after{opacity:1;visibility:visible}
+    .memory-legend{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem}
+    .legend-item{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--text-secondary)}
+    .legend-color{width:12px;height:12px;border-radius:3px}
+    .legend-color.weights{background:var(--accent-blue)}.legend-color.kv-cache{background:var(--accent-purple)}.legend-color.cuda-graphs{background:var(--accent-yellow)}.legend-color.overhead{background:var(--accent-red);opacity:.7}.legend-color.free{background:var(--accent-green);opacity:.3}
+
+    /* ===== STATUS BADGE ===== */
+    .status-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:20px;font-size:.85rem;font-weight:600;margin-top:1rem}
+    .status-badge.ok{background:rgba(0,255,136,.1);color:var(--accent-green);border:1px solid rgba(0,255,136,.3)}
+    .status-badge.warning{background:rgba(255,204,0,.1);color:var(--accent-yellow);border:1px solid rgba(255,204,0,.3)}
+    .status-badge.error{background:rgba(255,68,102,.1);color:var(--accent-red);border:1px solid rgba(255,68,102,.3)}
+
+    /* ===== COMMAND ===== */
+
+    /* ===== TABLE ===== */
+    .breakdown-table{width:100%;border-collapse:collapse;margin-top:1rem}
+    .breakdown-table th,.breakdown-table td{padding:.6rem .75rem;text-align:left;border-bottom:1px solid var(--border);font-size:.85rem}
+    .breakdown-table th{color:var(--text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em}
+    .breakdown-table td{font-family:'JetBrains Mono',monospace}
+    .breakdown-table td:last-child{text-align:right}
+    .breakdown-table tr:last-child td{border-bottom:none}
+    .breakdown-table .total-row td{font-weight:600;color:var(--accent-green);border-top:2px solid var(--border)}
+
+    /* ===== HF ===== */
+    .hf-input-row{display:flex;gap:.5rem}
+    .hf-input-row input[type="text"]{flex:1;padding:.75rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:.9rem;transition:border-color .2s,box-shadow .2s}
+    .hf-input-row input[type="text"]:focus{outline:none;border-color:var(--accent-green);box-shadow:0 0 0 3px rgba(0,255,136,.1)}
+    .hf-input-row input[type="text"]::placeholder{color:var(--text-muted)}
+    .hf-fetch-btn{padding:.75rem 1.25rem;background:linear-gradient(135deg,var(--accent-green),var(--accent-green-dim));border:none;border-radius:8px;color:var(--bg-primary);font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s;display:flex;align-items:center;justify-content:center;min-width:80px}
+    .hf-fetch-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,255,136,.3)}
+    .hf-fetch-btn:active{transform:translateY(0)}
+    .hf-fetch-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .hf-fetch-btn .spinner{width:18px;height:18px;animation:spin 1s linear infinite}
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .hint.success{color:var(--accent-green)}.hint.error{color:var(--accent-red)}.hint.loading{color:var(--accent-yellow)}.hint.warning{color:var(--accent-yellow)}
+
+    /* ===== MODEL INFO CARD ===== */
+    .model-info-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem}
+    .model-info-header{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+    .model-info-icon{font-size:1.5rem}
+    .model-info-name{font-weight:600;font-size:.95rem;color:var(--text-primary)}
+    .model-info-author{font-size:.8rem;color:var(--text-muted)}
+    .model-info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem 1rem}
+    .model-info-item{display:flex;justify-content:space-between;font-size:.8rem}
+    .model-info-item .label{color:var(--text-muted)}.model-info-item .value{font-family:'JetBrains Mono',monospace;color:var(--text-secondary)}
+    .model-info-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem}
+    .model-tag{padding:.2rem .5rem;background:var(--bg-tertiary);border-radius:4px;font-size:.7rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
+    .model-tag.quant{background:rgba(170,102,255,.2);color:var(--accent-purple)}
+    .model-tag.arch{background:rgba(68,136,255,.2);color:var(--accent-blue)}
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state{text-align:center;padding:2.5rem 1rem;color:var(--text-muted)}
+    .empty-state .empty-icon{font-size:2.5rem;margin-bottom:1rem;opacity:.5}
+    .empty-state p{font-size:.85rem;line-height:1.6}
+
+    /* ===== QUANT SUMMARY ===== */
+    .quant-summary{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-top:.75rem}
+    .quant-summary-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.8rem}
+    .quant-summary-row .qs-label{color:var(--text-muted)}.quant-summary-row .qs-value{font-family:'JetBrains Mono',monospace;color:var(--text-secondary);font-weight:500}
+
+    /* ===== SECTION DIVIDER / COLLAPSIBLE ===== */
+    .section-divider{display:flex;align-items:center;margin:1.5rem 0 1rem;gap:1rem}
+    .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .section-divider span{font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+    .section-divider.collapsible{cursor:pointer;user-select:none;transition:color .2s}
+    .section-divider.collapsible:hover span{color:var(--text-primary)}
+    .section-divider.collapsible .toggle-icon{transition:transform .2s}
+    .section-divider.collapsible.collapsed .toggle-icon{transform:rotate(-90deg)}
+    #quant-section-content{overflow:hidden;transition:max-height .3s,opacity .3s;max-height:500px;opacity:1}
+    #quant-section-content.collapsed{max-height:0;opacity:0}
+
+    /* ===== KV COMPARISON BAR ===== */
+    .kv-comparison-bar-container{margin-top:1rem;margin-bottom:.5rem}
+    .kv-comparison-bar{height:20px;background:var(--bg-secondary);border-radius:6px;overflow:hidden;position:relative;border:1px solid var(--border)}
+    .kv-comparison-fill{height:100%;transition:width .3s,background .3s;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;color:var(--bg-primary);position:relative}
+    .kv-comparison-fill.ok{background:linear-gradient(90deg,var(--accent-green),var(--accent-green-dim))}
+    .kv-comparison-fill.warning{background:linear-gradient(90deg,var(--accent-yellow),#e6b800)}
+    .kv-comparison-fill.error{background:linear-gradient(90deg,var(--accent-red),#cc3355)}
+    .kv-comparison-label{font-size:.75rem;color:var(--text-muted);margin-bottom:.3rem}
+
+    /* ===== SELECTION GRID ===== */
+    .selection-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+    .selection-grid select{width:100%;padding:.6rem;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary)}
+
+    /* Toast */
   </style>
 </head>
 <body>
@@ -948,394 +178,224 @@
     </header>
 
     <div class="grid">
-      <!-- Left Column: Inputs -->
-      <div class="inputs-column">
-        <!-- GPU Configuration -->
-        <div class="panel" role="region" aria-labelledby="gpu-config-title">
+      <!-- ========== ROW 1 LEFT: 模型配置 ========== -->
+      <div class="area-model-input">
+        <div class="panel" role="region" aria-labelledby="model-config-title">
           <div class="panel-header">
-            <div class="panel-icon gpu" aria-hidden="true"><i data-lucide="monitor" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="gpu-config-title">GPU 配置</h2>
+            <div class="panel-icon model" aria-hidden="true"><i data-lucide="brain" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="model-config-title">① 模型配置</h2>
           </div>
-
-          <div class="form-group">
-            <label for="gpu-preset">GPU 预设</label>
-            <select id="gpu-preset" aria-label="Select GPU preset from common models">
-              <option value="custom">自定义（手动输入）</option>
-              <optgroup label="消费级 GPU">
-                <option value="12.9">RTX 4070 Ti (12GB)</option>
-                <option value="17.2">RTX 4080 (16GB)</option>
-                <option value="25.8">RTX 4090 (24GB)</option>
-                <option value="25.4">RTX 3090 (24GB)</option>
-                <option value="34.2">RTX 5090 (32GB)</option>
-              </optgroup>
-              <optgroup label="专业级 GPU">
-                <option value="51.5">RTX 6000 Ada (48GB)</option>
-                <option value="51.5">L40 (48GB)</option>
-                <option value="51.5">L40S (48GB)</option>
-                <option value="51.0">A6000 (48GB)</option>
-                <option value="48.0">RTX PRO 5000 (48GB)</option>
-                <option value="72.0">RTX PRO 5000 (72GB)</option>
-                <option value="42.5">A100 (40GB)</option>
-                <option value="85.2">A100 (80GB)</option>
-                <option value="85.5">H100 (80GB)</option>
-                <option value="96.0">RTX Pro 6000 (96GB)</option>
-                <option value="96.0">RTX Pro 6000 Max (96GB)</option>
-                <option value="84.0">RTX Pro 6000D (84GB)</option>
-                <option value="112.0">950 PR (112GB)</option>
-                <option value="150.5">H200 (141GB)</option>
-                <option value="64.0" selected>NPU 910B (64GB)</option>
-                <option value="128.0">NPU 910C (128GB)</option>
-              </optgroup>
-            </select>
-            <p class="hint">实际可用显存（nvidia-smi 显示值，十进制 GB）</p>
-          </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="gpu-vram">每卡显存 (GB)</label>
-              <input type="number" id="gpu-vram" value="64.0" min="1" max="192" step="0.1"
-                aria-label="VRAM per GPU in decimal gigabytes"
-                aria-describedby="gpu-vram-hint">
-              <p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes（十进制）</p>
+          <div class="selection-grid">
+            <div class="form-group"><label for="model-vendor">厂商</label>
+              <select id="model-vendor"><option value="DeepSeek">DeepSeek</option><option value="Qwen">Qwen</option><option value="GLM">GLM</option><option value="Custom">自定义/其他</option></select>
             </div>
-            <div class="form-group">
-              <label for="num-gpus">GPU 数量（TP 大小）</label>
-              <input type="number" id="num-gpus" value="2" min="1" max="8" step="1"
-                aria-label="Number of GPUs for tensor parallelism">
-            </div>
+            <div class="form-group"><label for="model-preset">预设模型</label><select id="model-preset"></select></div>
           </div>
-
-          <div class="form-group">
-            <label for="gpu-utilization">GPU 显存利用率</label>
-            <input type="number" id="gpu-utilization" value="0.90" min="0.5" max="0.99" step="0.01"
-              aria-label="GPU memory utilization ratio"
-              aria-describedby="gpu-util-hint">
-            <p class="hint" id="gpu-util-hint">通常 0.85-0.95。较低值可为峰值预留更多空间</p>
-          </div>
-        </div>
-
-        <!-- Model Configuration -->
-        <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="model-config-title">
-          <div class="panel-header">
-            <div class="panel-icon model" aria-hidden="true"><i data-lucide="brain" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="model-config-title">模型配置</h2>
-          </div>
-
-          <!-- 统一的模型选择区域 -->
-          <div class="selection-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div class="form-group">
-              <label for="model-vendor">厂商</label>
-              <select id="model-vendor" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
-                <option value="DeepSeek">DeepSeek</option>
-                <option value="Qwen">Qwen</option>
-                <option value="GLM">GLM</option>
-                <option value="Custom">自定义/其他</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="model-preset">预设模型</label>
-              <select id="model-preset" class="form-control" style="width: 100%; padding: 0.6rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);">
-                <!-- 动态填充 -->
-              </select>
-            </div>
-          </div>
-
-          <!-- HuggingFace Integration -->
           <div class="form-group">
             <label for="hf-model-id">HuggingFace 模型 ID</label>
             <div class="hf-input-row">
-              <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3"
-                aria-label="HuggingFace model ID"
-                aria-describedby="hf-status">
-              <button class="hf-fetch-btn" id="hf-fetch-btn"
-                aria-label="Fetch model configuration from HuggingFace">
+              <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3" aria-label="HuggingFace model ID" aria-describedby="hf-status">
+              <button class="hf-fetch-btn" id="hf-fetch-btn" aria-label="Fetch model configuration from HuggingFace">
                 <span class="btn-text">获取</span>
-                <span class="btn-loading" style="display: none;" aria-hidden="true">
-                  <svg class="spinner" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/>
-                  </svg>
-                </span>
+                <span class="btn-loading" style="display:none" aria-hidden="true"><svg class="spinner" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg></span>
               </button>
             </div>
             <p class="hint" id="hf-status" role="status" aria-live="polite">输入 ID 或选择预设，然后点击获取</p>
           </div>
-
-
           <div class="input-row">
-            <div class="form-group">
-              <label for="model-weights">参数量（B）</label>
-              <input type="number" id="model-weights" value="36.3" min="0.1" max="500" step="0.1">
-              <p class="hint">BF16 基础大小（来自 HF 或手动输入）。实际 = 此值 × 量化比例</p>
-            </div>
-            <div class="form-group">
-              <label for="num-layers">层数</label>
-              <input type="number" id="num-layers" value="32" min="1" max="200" step="1">
+            <div class="form-group"><label for="model-weights">参数量（B）</label><input type="number" id="model-weights" value="36.3" min="0.1" max="500" step="0.1"><p class="hint">BF16 基础大小。实际 = 此值 × 量化比例</p></div>
+            <div class="form-group"><label for="num-layers">层数</label><input type="number" id="num-layers" value="32" min="1" max="200" step="1"></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label for="kv-heads">KV Heads (GQA)</label><input type="number" id="kv-heads" value="8" min="1" max="128" step="1"><p class="hint">Key-Value 注意力头数</p></div>
+            <div class="form-group"><label for="head-dim">Head 维度</label><input type="number" id="head-dim" value="64" min="32" max="256" step="8"></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label for="attn-heads">注意力头数（总数）</label><input type="number" id="attn-heads" value="8" min="1" max="128" step="1"><p class="hint">总注意力头数（≥ KV heads）</p></div>
+            <div class="form-group"><label for="activation-dtype">激活数据类型</label>
+              <select id="activation-dtype"><option value="2">BF16/FP16 (2 bytes)</option><option value="1" selected>FP8/INT8 (1 byte)</option></select>
             </div>
           </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="kv-heads">KV Heads (GQA)</label>
-              <input type="number" id="kv-heads" value="8" min="1" max="128" step="1">
-              <p class="hint">Key-Value 注意力头数</p>
-            </div>
-            <div class="form-group">
-              <label for="head-dim">Head 维度</label>
-              <input type="number" id="head-dim" value="64" min="32" max="256" step="8">
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="attn-heads">注意力头数（总数）</label>
-              <input type="number" id="attn-heads" value="8" min="1" max="128" step="1">
-              <p class="hint">总注意力头数（≥ KV heads）</p>
-            </div>
-            <div class="form-group">
-              <label for="activation-dtype">激活数据类型</label>
-              <select id="activation-dtype">
-                <option value="2">BF16/FP16 (2 bytes)</option>
-                <option value="1" selected>FP8/INT8 (1 byte)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="input-row" style="margin-top: 1rem;">
-            <div class="form-group">
-              <label for="attention-type">注意力架构</label>
-              <select id="attention-type">
-                <option value="auto" selected>自动检测</option>
-                <option value="mha">MHA (Multi-Head Attention)</option>
-                <option value="gqa">GQA (Grouped Query Attention)</option>
-                <option value="mla">MLA (Multi-head Latent Attention)</option>
-              </select>
+          <div class="input-row" style="margin-top:1rem">
+            <div class="form-group"><label for="attention-type">注意力架构</label>
+              <select id="attention-type"><option value="auto" selected>自动检测</option><option value="mha">MHA (Multi-Head Attention)</option><option value="gqa">GQA (Grouped Query Attention)</option><option value="mla">MLA (Multi-head Latent Attention)</option></select>
               <p class="hint" id="attention-type-detected">输入 HuggingFace 模型 ID 以自动检测</p>
             </div>
-            <div class="form-group" id="kv-lora-rank-group" style="display: none;">
-              <label for="kv-lora-rank">KV LoRA Rank</label>
-              <input type="number" id="kv-lora-rank" value="1536" min="64" max="8192" step="64">
-              <p class="hint">MLA 压缩维度（从 HF 自动检测）</p>
+            <div class="form-group" id="kv-lora-rank-group" style="display:none"><label for="kv-lora-rank">KV LoRA Rank</label><input type="number" id="kv-lora-rank" value="1536" min="64" max="8192" step="64"><p class="hint">MLA 压缩维度（从 HF 自动检测）</p></div>
+          </div>
+          <div class="section-divider collapsible" id="quant-toggle" style="cursor:pointer;user-select:none"><span>量化设置</span><i data-lucide="chevron-down" class="toggle-icon" style="width:16px;height:16px;transition:transform .2s"></i></div>
+          <div id="quant-section-content">
+            <div class="form-group"><label for="quant-method">权重量化</label>
+              <select id="quant-method"><option value="none">BF16 (2 字节/参数)</option><option value="int8" selected>INT8 (1 字节/参数)</option><option value="fp8">FP8 (1 字节/参数)</option><option value="int4">INT4 (0.5 字节/参数)</option><option value="fp4">FP4 (0.5 字节/参数)</option></select>
+              <p class="hint">实际权重 = 参数量(BF16) × (字节数/参数 ÷ 2)</p>
             </div>
           </div>
-
-          <!-- Quantization Configuration -->
-          <div class="section-divider collapsible" id="quant-toggle" style="cursor: pointer; user-select: none;">
-            <span>量化设置</span>
-            <i data-lucide="chevron-down" class="toggle-icon" style="width: 16px; height: 16px; transition: transform 0.2s ease;"></i>
-          </div>
-
-          <div id="quant-section-content">
-<div class="form-group">
-<label for="quant-method">权重量化</label>
-                <select id="quant-method">
-                  <option value="none">BF16 (2 字节/参数)</option>
-                  <option value="int8" selected>INT8 (1 字节/参数)</option>
-                  <option value="fp8">FP8 (1 字节/参数)</option>
-                  <option value="int4">INT4 (0.5 字节/参数)</option>
-                  <option value="fp4">FP4 (0.5 字节/参数)</option>
-                </select>
-                <p class="hint">实际权重 = 参数量(BF16) × (字节数/参数 ÷ 2)</p>
-             </div>
-
-
-          </div>
         </div>
-
       </div>
 
-      <!-- Right Column: Results -->
-      <div class="results-column">
-        <!-- vLLM Configuration -->
-        <div class="panel">
+      <!-- ========== ROW 1 RIGHT: 模型相关参数 ========== -->
+      <div class="area-model-params">
+        <div class="panel panel-output" role="region" aria-labelledby="model-params-title">
           <div class="panel-header">
-            <div class="panel-icon config"><i data-lucide="settings" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title">vLLM 配置</h2>
+            <div class="panel-icon info" aria-hidden="true"><i data-lucide="file-text" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="model-params-title">① 模型相关参数</h2>
           </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="max-model-len">最大模型长度</label>
-              <input type="number" id="max-model-len" value="131072" min="1024" max="1048576" step="1024">
-              <p class="hint">最大上下文窗口</p>
-            </div>
-            <div class="form-group">
-              <label for="max-num-seqs">最大并发序列数</label>
-              <input type="number" id="max-num-seqs" value="8" min="1" max="256" step="1">
-              <p class="hint">并发序列数量</p>
+          <div id="model-params-content">
+            <div class="empty-state" id="model-params-empty">
+              <div class="empty-icon"><i data-lucide="search" style="width:48px;height:48px;opacity:.4"></i></div>
+              <p>请在左侧输入 HuggingFace 模型 ID<br>并点击 <strong>获取</strong> 以查看模型详情</p>
             </div>
           </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="max-batched-tokens">最大批处理 Token 数</label>
-              <input type="number" id="max-batched-tokens" value="65536" min="1024" max="262144" step="1024">
-              <p class="hint">每次前向传播的 Token 数</p>
-            </div>
-            <div class="form-group">
-              <label for="kv-cache-dtype">KV Cache 数据类型</label>
-              <select id="kv-cache-dtype">
-                <option value="2" selected>BF16/FP16 (2 字节)</option>
-                <option value="1">FP8 (1 字节)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="cuda-graphs">CUDA Graphs</label>
-              <select id="cuda-graphs">
-                <option value="1" selected>启用（自动计算）</option>
-                <option value="0">禁用 (--enforce-eager)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="overhead-estimate">预估开销 (GB)</label>
-              <input type="number" id="overhead-estimate" value="0" min="0" step="0.01" readonly>
-              <p class="hint">根据激活缓冲区计算</p>
-            </div>
-          </div>
-
-          <div class="input-row">
-            <div class="form-group">
-              <label for="overhead-padding">额外开销 (GB)</label>
-              <input type="number" id="overhead-padding" value="1.0" min="0" max="10" step="0.1">
-              <p class="hint">框架/MoE/编译开销。大模型建议 1-2 GB，小模型 0.5 GB</p>
-            </div>
-            <div class="form-group">
-              <label for="overhead-notes">开销输入</label>
-              <div class="hint" id="overhead-notes">
-                Prefill + decode tokens × 每 GPU 隐藏层大小 × dtype
-              </div>
-            </div>
+          <div class="quant-summary" id="quant-weight-summary">
+            <div class="section-title" style="margin-bottom:.5rem">权重 &amp; 量化摘要</div>
+            <div class="quant-summary-row"><span class="qs-label">量化方式</span><span class="qs-value" id="qs-quant-method">INT8</span></div>
+            <div class="quant-summary-row"><span class="qs-label">每参数字节数</span><span class="qs-value" id="qs-bytes-per-param">1.00 B</span></div>
+            <div class="quant-summary-row"><span class="qs-label">权重总大小（全模型）</span><span class="qs-value" id="qs-total-weight">36.30 GB</span></div>
+            <div class="quant-summary-row"><span class="qs-label">每卡权重</span><span class="qs-value" id="qs-weight-per-gpu">18.15 GB</span></div>
+            <div class="quant-summary-row"><span class="qs-label">注意力架构</span><span class="qs-value" id="qs-attn-type">GQA</span></div>
           </div>
         </div>
+      </div>
 
-        <div class="panel" style="margin-top: 1.5rem;" role="region" aria-labelledby="memory-breakdown-title">
+      <!-- ========== ROW 2 LEFT: vLLM 配置 ========== -->
+      <div class="area-vllm-input">
+        <div class="panel" role="region" aria-labelledby="vllm-config-title">
           <div class="panel-header">
-            <div class="panel-icon result" aria-hidden="true"><i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title" id="memory-breakdown-title">内存分配明细（每卡）</h2>
+            <div class="panel-icon config" aria-hidden="true"><i data-lucide="settings" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="vllm-config-title">② vLLM 配置</h2>
           </div>
-
-          <table class="breakdown-table" role="table" aria-label="Memory usage breakdown per GPU">
-            <thead>
-              <tr>
-                <th scope="col">组件</th>
-                <th scope="col">大小</th>
-              </tr>
-            </thead>
-            <tbody id="breakdown-body">
-              <!-- Filled by JS -->
-            </tbody>
-          </table>
-
-          <div class="memory-bar-container">
-<div class="memory-bar-label">
-               <span>内存使用</span>
-               <span id="memory-percent" aria-live="polite">0%</span>
-             </div>
-            <div class="memory-bar" id="memory-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="GPU memory usage percentage">
-              <!-- Filled by JS -->
+          <div class="input-row">
+            <div class="form-group"><label for="max-model-len">最大模型长度</label><input type="number" id="max-model-len" value="131072" min="1024" max="1048576" step="1024"><p class="hint">最大上下文窗口</p></div>
+            <div class="form-group"><label for="max-num-seqs">最大并发序列数</label><input type="number" id="max-num-seqs" value="8" min="1" max="256" step="1"><p class="hint">并发序列数量</p></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label for="max-batched-tokens">最大批处理 Token 数</label><input type="number" id="max-batched-tokens" value="65536" min="1024" max="262144" step="1024"><p class="hint">每次前向传播的 Token 数</p></div>
+            <div class="form-group"><label for="kv-cache-dtype">KV Cache 数据类型</label>
+              <select id="kv-cache-dtype"><option value="2" selected>BF16/FP16 (2 字节)</option><option value="1">FP8 (1 字节)</option></select>
             </div>
-<div class="memory-legend">
-               <div class="legend-item"><div class="legend-color weights"></div>权重</div>
-               <div class="legend-item"><div class="legend-color kv-cache"></div>KV Cache</div>
-               <div class="legend-item"><div class="legend-color cuda-graphs"></div>CUDA Graphs</div>
-               <div class="legend-item"><div class="legend-color overhead"></div>开销</div>
-               <div class="legend-item"><div class="legend-color free"></div>空闲</div>
-             </div>
           </div>
-
-          <div id="status-container" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="input-row">
+            <div class="form-group"><label for="cuda-graphs">CUDA Graphs</label>
+              <select id="cuda-graphs"><option value="1" selected>启用（自动计算）</option><option value="0">禁用 (--enforce-eager)</option></select>
+            </div>
+            <div class="form-group"><label for="overhead-estimate">预估开销 (GB)</label><input type="number" id="overhead-estimate" value="0" min="0" step="0.01" readonly><p class="hint">根据激活缓冲区计算</p></div>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label for="overhead-padding">额外开销 (GB)</label><input type="number" id="overhead-padding" value="1.0" min="0" max="10" step="0.1"><p class="hint">框架/MoE/编译开销。大模型建议 1-2 GB</p></div>
+            <div class="form-group"><label for="overhead-notes">开销输入</label><div class="hint" id="overhead-notes">Prefill + decode tokens × 每 GPU 隐藏层大小 × dtype</div></div>
+          </div>
         </div>
+      </div>
 
-        <!-- Capacity Analysis -->
-        <div class="panel" style="margin-top: 1.5rem;">
+      <!-- ========== ROW 2 RIGHT: KV Cache 大小计算 ========== -->
+      <div class="area-kvcache-calc">
+        <div class="panel panel-output" role="region" aria-labelledby="kvcache-calc-title">
           <div class="panel-header">
-            <div class="panel-icon config"><i data-lucide="trending-up" style="width: 20px; height: 20px;"></i></div>
-            <h2 class="panel-title">容量分析</h2>
+            <div class="panel-icon kvcache" aria-hidden="true"><i data-lucide="database" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="kvcache-calc-title">② KV Cache 大小计算</h2>
           </div>
-
+          <div class="kv-total-hero">
+            <div class="kv-total-label">KV Cache 总需求</div>
+            <div class="kv-total-number" id="kv-total-display">- GB</div>
+            <div class="kv-total-sub" id="kv-total-formula"></div>
+          </div>
           <div class="results-section">
-<div class="section-title">KV Cache：可分配 vs 需求</div>
-             <div class="result-row">
-               <span class="result-label">可分配 KV Cache 空间（每卡）</span>
-               <span class="result-value" id="kv-allocated-display">-</span>
-             </div>
-             <div class="result-row">
-               <span class="result-label">需求（max-model-len × max-num-seqs）</span>
-               <span class="result-value" id="kv-required-display">-</span>
-             </div>
-             <div class="result-row">
-               <span class="result-label">利用率</span>
-               <span class="result-value" id="kv-utilization-display">-</span>
-             </div>
-             <div class="kv-comparison-bar-container">
-               <div class="kv-comparison-label">需求 vs 已分配</div>
-              <div class="kv-comparison-bar">
-                <div class="kv-comparison-fill" id="kv-comparison-fill"></div>
-              </div>
-            </div>
+            <div class="section-title">可分配 vs 需求</div>
+            <div class="result-row"><span class="result-label">可分配 KV Cache 空间（每卡）</span><span class="result-value" id="kv-allocated-display">-</span></div>
+            <div class="result-row"><span class="result-label">需求（max-model-len × max-num-seqs）</span><span class="result-value" id="kv-required-display">-</span></div>
+            <div class="result-row"><span class="result-label">利用率</span><span class="result-value" id="kv-utilization-display">-</span></div>
+            <div class="kv-comparison-bar-container"><div class="kv-comparison-label">需求 vs 已分配</div><div class="kv-comparison-bar"><div class="kv-comparison-fill" id="kv-comparison-fill"></div></div></div>
             <div id="kv-comparison-status"></div>
           </div>
-
           <div class="results-section">
-<div class="section-title">KV Cache 容量</div>
-             <div class="result-row">
-               <span class="result-label">可用于 KV Cache</span>
-               <span class="result-value" id="kv-available">-</span>
-             </div>
-<div class="result-row">
-                <span class="result-label">每 Token 字节数</span>
-                <span class="result-value" id="bytes-per-token">-</span>
-              </div>
-              <p class="hint" id="bytes-per-token-formula" style="margin-top: -0.5rem; margin-bottom: 0.5rem;"></p>
-              <div class="result-row">
-                <span class="result-label">Cache 中最大 Token 数</span>
-                <span class="result-value highlight" id="max-tokens">-</span>
-              </div>
-            </div>
-
-           <div class="results-section">
-             <div class="section-title">有效限制</div>
-             <div class="result-row">
-               <span class="result-label">最大上下文（单序列）</span>
-               <span class="result-value" id="max-context-single">-</span>
-             </div>
-             <div class="result-row">
-               <span class="result-label">平均上下文（所有序列）</span>
-               <span class="result-value" id="avg-context-all">-</span>
-             </div>
-             <div class="result-row">
-               <span class="result-label">推荐 max-num-seqs</span>
-               <span class="result-value highlight" id="recommended-seqs">-</span>
-             </div>
-           </div>
-        </div>
-
-        <!-- Generated Command -->
-        <div class="panel" style="margin-top: 1.5rem;">
-          <div class="panel-header">
-            <div class="panel-icon model"><i data-lucide="terminal" style="width: 20px; height: 20px;"></i></div>
-<h2 class="panel-title">生成的 vLLM 命令</h2>
-           </div>
-           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-             <span class="hint"><i data-lucide="copy" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> 点击复制命令</span>
-           </div>
-          <div class="command-output" id="command-output" style="cursor: pointer; position: relative;" onclick="copyCommandToClipboard()">
-            <!-- Filled by JS -->
+            <div class="section-title">KV Cache 容量</div>
+            <div class="result-row"><span class="result-label">可用于 KV Cache</span><span class="result-value" id="kv-available">-</span></div>
+            <div class="result-row"><span class="result-label">每 Token 字节数</span><span class="result-value" id="bytes-per-token">-</span></div>
+            <p class="hint" id="bytes-per-token-formula" style="margin-top:-.5rem;margin-bottom:.5rem"></p>
+            <div class="result-row"><span class="result-label">Cache 中最大 Token 数</span><span class="result-value highlight" id="max-tokens">-</span></div>
+          </div>
+          <div class="results-section">
+            <div class="section-title">有效限制</div>
+            <div class="result-row"><span class="result-label">最大上下文（单序列）</span><span class="result-value" id="max-context-single">-</span></div>
+            <div class="result-row"><span class="result-label">平均上下文（所有序列）</span><span class="result-value" id="avg-context-all">-</span></div>
+            <div class="result-row"><span class="result-label">推荐 max-num-seqs</span><span class="result-value highlight" id="recommended-seqs">-</span></div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- ========== ROW 3 LEFT: 硬件配置 ========== -->
+      <div class="area-hardware-input">
+        <div class="panel" role="region" aria-labelledby="gpu-config-title">
+          <div class="panel-header">
+            <div class="panel-icon gpu" aria-hidden="true"><i data-lucide="cpu" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="gpu-config-title">③ 硬件配置</h2>
+          </div>
+          <div class="form-group"><label for="gpu-preset">GPU 预设</label>
+            <select id="gpu-preset" aria-label="Select GPU preset from common models">
+              <option value="custom">自定义（手动输入）</option>
+              <optgroup label="消费级 GPU">
+                <option value="12.9">RTX 4070 Ti (12GB)</option><option value="17.2">RTX 4080 (16GB)</option><option value="25.8">RTX 4090 (24GB)</option><option value="25.4">RTX 3090 (24GB)</option><option value="34.2">RTX 5090 (32GB)</option>
+              </optgroup>
+              <optgroup label="专业级 GPU">
+                <option value="51.5">RTX 6000 Ada (48GB)</option><option value="51.5">L40 (48GB)</option><option value="51.5">L40S (48GB)</option><option value="51.0">A6000 (48GB)</option><option value="48.0">RTX PRO 5000 (48GB)</option><option value="72.0">RTX PRO 5000 (72GB)</option><option value="42.5">A100 (40GB)</option><option value="85.2">A100 (80GB)</option><option value="85.5">H100 (80GB)</option><option value="96.0">RTX Pro 6000 (96GB)</option><option value="96.0">RTX Pro 6000 Max (96GB)</option><option value="84.0">RTX Pro 6000D (84GB)</option><option value="112.0">950 PR (112GB)</option><option value="150.5">H200 (141GB)</option><option value="64.0" selected>NPU 910B (64GB)</option><option value="128.0">NPU 910C (128GB)</option>
+              </optgroup>
+            </select>
+            <p class="hint">实际可用显存（nvidia-smi 显示值，十进制 GB）</p>
+          </div>
+          <div class="input-row">
+            <div class="form-group"><label for="gpu-vram">每卡显存 (GB)</label><input type="number" id="gpu-vram" value="64.0" min="1" max="192" step="0.1" aria-label="VRAM per GPU in decimal gigabytes" aria-describedby="gpu-vram-hint"><p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes（十进制）</p></div>
+            <div class="form-group"><label for="num-gpus">GPU 数量（TP 大小）</label><input type="number" id="num-gpus" value="2" min="1" max="8" step="1" aria-label="Number of GPUs for tensor parallelism"></div>
+          </div>
+          <div class="form-group"><label for="gpu-utilization">GPU 显存利用率</label><input type="number" id="gpu-utilization" value="0.90" min="0.5" max="0.99" step="0.01" aria-label="GPU memory utilization ratio" aria-describedby="gpu-util-hint"><p class="hint" id="gpu-util-hint">通常 0.85-0.95。较低值可为峰值预留更多空间</p></div>
+        </div>
+      </div>
+
+      <!-- ========== ROW 3 RIGHT: 内存分配明细 ========== -->
+      <div class="area-memory-breakdown">
+        <div class="panel panel-output" role="region" aria-labelledby="memory-breakdown-title">
+          <div class="panel-header">
+            <div class="panel-icon result" aria-hidden="true"><i data-lucide="bar-chart-3" style="width:20px;height:20px"></i></div>
+            <h2 class="panel-title" id="memory-breakdown-title">③ 内存分配明细（每卡）</h2>
+          </div>
+          <table class="breakdown-table" role="table" aria-label="Memory usage breakdown per GPU">
+            <thead><tr><th scope="col">组件</th><th scope="col">大小</th></tr></thead>
+            <tbody id="breakdown-body"></tbody>
+          </table>
+          <div class="memory-bar-container">
+            <div class="memory-bar-label"><span>内存使用</span><span id="memory-percent" aria-live="polite">0%</span></div>
+            <div class="memory-bar" id="memory-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="GPU memory usage percentage"></div>
+            <div class="memory-legend">
+              <div class="legend-item"><div class="legend-color weights"></div>权重</div>
+              <div class="legend-item"><div class="legend-color kv-cache"></div>KV Cache</div>
+              <div class="legend-item"><div class="legend-color cuda-graphs"></div>CUDA Graphs</div>
+              <div class="legend-item"><div class="legend-color overhead"></div>开销</div>
+              <div class="legend-item"><div class="legend-color free"></div>空闲</div>
+            </div>
+          </div>
+          <div id="status-container" role="status" aria-live="polite" aria-atomic="true"></div>
+        </div>
+      </div>
+    </div><!-- /.grid -->
   </div>
 
   <script>
+    // Utility: debounce
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
     // Initialize Lucide icons
     lucide.createIcons();
 
     // Built-in Models Data
     const BUILTIN_MODELS = {
       'DeepSeek': [
+        { name: 'DeepSeek-V4-Pro', id: 'deepseek-ai/DeepSeek-V4-Pro' },
+        { name: 'DeepSeek-V4-Flash', id: 'deepseek-ai/DeepSeek-V4-Flash' },
         { name: 'DeepSeek-V3.2', id: 'deepseek-ai/DeepSeek-V3.2' },
         { name: 'DeepSeek-R1', id: 'deepseek-ai/DeepSeek-R1' },
       ],
@@ -1719,6 +779,10 @@
     }
 
     const KNOWN_MODEL_PARAMS = {
+      'deepseek-v4-pro': 1600,
+      'deepseekv4-pro': 1600,
+      'deepseek-v4-flash': 284,
+      'deepseekv4-flash': 284,
       'deepseek-v3': 671,
       'deepseekv3': 671,
       'deepseek-v2': 236,
@@ -1767,6 +831,7 @@
                     config.num_experts || 
                     archLower.includes('moe') ||
                     archLower.includes('mixtral') ||
+                    archLower.includes('deepseekv4') ||
                     archLower.includes('deepseekv3') ||
                     archLower.includes('deepseekv2');
 
@@ -1825,10 +890,18 @@
       const vHeadDim = config.v_head_dim || qkNopeHeadDim;
 
       const isMla = kvLoraRank && qLoraRank;
+      const isV4 = config.o_lora_rank && qLoraRank;
+      const oLoraRank = config.o_lora_rank;
       const numNextnPredictLayers = config.num_nextn_predict_layers || 0;
 
       for (let layer = 0; layer < numLayers + numNextnPredictLayers; layer++) {
-        if (isMla) {
+        if (isV4) {
+          params += hiddenSize * qLoraRank;
+          params += qLoraRank * attnHeads * (qkNopeHeadDim + qkRopeHeadDim);
+          params += hiddenSize * qkNopeHeadDim * 2;
+          params += attnHeads * qkNopeHeadDim * oLoraRank;
+          params += oLoraRank * hiddenSize;
+        } else if (isMla) {
           params += hiddenSize * kvLoraRank;
           params += kvLoraRank * (qkNopeHeadDim + qkRopeHeadDim) * attnHeads;
           params += kvLoraRank;
@@ -1869,6 +942,13 @@
     }
 
     function estimateModelParams(modelInfo, config, safetensorsIndex = null) {
+      const modelIdLower = (modelInfo.modelId || '').toLowerCase();
+      for (const [key, value] of Object.entries(KNOWN_MODEL_PARAMS)) {
+        if (modelIdLower.includes(key)) {
+          return value;
+        }
+      }
+
       if (modelInfo.safetensors?.parameters) {
         const params = modelInfo.safetensors.parameters.total;
         if (params && Number.isFinite(params)) {
@@ -1879,13 +959,6 @@
           .reduce((a, [, b]) => a + b, 0);
         if (dtypeParams > 0) {
           return dtypeParams / 1e9;
-        }
-      }
-
-      const modelIdLower = (modelInfo.modelId || '').toLowerCase();
-      for (const [key, value] of Object.entries(KNOWN_MODEL_PARAMS)) {
-        if (modelIdLower.includes(key)) {
-          return value;
         }
       }
 
@@ -1976,12 +1049,14 @@
       // Estimate parameter count
       result.paramsB = estimateModelParams(modelInfo, config, safetensorsIndex);
       result.paramsSource = null;
-      if (modelInfo.safetensors?.parameters) {
+      const modelIdLower = (modelInfo.modelId || '').toLowerCase();
+      const knownParamMatch = Object.entries(KNOWN_MODEL_PARAMS).find(([key]) => modelIdLower.includes(key));
+      if (knownParamMatch) {
+        result.paramsSource = 'Known model mapping';
+      } else if (modelInfo.safetensors?.parameters) {
         result.paramsSource = 'HF API safetensors.parameters';
       } else if (safetensorsIndex?.metadata?.total_size) {
         result.paramsSource = 'safetensors.index.json total_size';
-      } else if (KNOWN_MODEL_PARAMS[(modelInfo.modelId || '').toLowerCase().split('/')[1]?.split('-')[0]]) {
-        result.paramsSource = 'Known model mapping';
       } else if (modelInfo.modelId?.match(/(\d+(?:\.\d+)?)[bB]/)) {
         result.paramsSource = 'Model name parsing';
       } else if (result.paramsB) {
@@ -2022,7 +1097,7 @@
       if (!result.attentionType && config?.architectures) {
         for (const arch of config.architectures) {
           const archLower = arch.toLowerCase();
-          if (/deepseekv[23]forcausallm/.test(archLower)) {
+          if (/deepseekv[234]forcausallm/.test(archLower)) {
             result.attentionType = 'mla';
             break;
           }
@@ -2046,7 +1121,9 @@
         // If not found in config, try to infer from model name
         if (!result.kvLoraRank && result.name) {
           const nameLower = result.name.toLowerCase();
-          if (nameLower.includes('deepseek-v3') || nameLower.includes('deepseekv3')) {
+          if (nameLower.includes('deepseek-v4') || nameLower.includes('deepseekv4')) {
+            result.kvLoraRank = 72;
+          } else if (nameLower.includes('deepseek-v3') || nameLower.includes('deepseekv3')) {
             result.kvLoraRank = 1536;
           } else if (nameLower.includes('deepseek-v2') || nameLower.includes('deepseekv2')) {
             result.kvLoraRank = 512;
@@ -2118,9 +1195,11 @@
         </div>
       `;
 
-      // Insert after the HF input row
-      const hfFormGroup = hfModelId.closest('.form-group');
-      hfFormGroup.after(card);
+      // Insert into model-params panel
+      const container = document.getElementById('model-params-content');
+      const emptyState = document.getElementById('model-params-empty');
+      if (emptyState) emptyState.style.display = 'none';
+      container.appendChild(card);
       modelInfoCard = card;
       
       // Initialize Lucide icons for the new card
@@ -2271,6 +1350,8 @@ const missingFields = [];
           modelInfoCard.remove();
           modelInfoCard = null;
         }
+        const emptyEl = document.getElementById('model-params-empty');
+        if (emptyEl) emptyEl.style.display = '';
 
         // Reset detection UI on error
         resetFetchedModelMetadata();
@@ -2427,6 +1508,9 @@ const missingFields = [];
       
       // Default values for known models
       const modelId = hfModelId.value.toLowerCase();
+      if (modelId.includes('deepseek-v4') || modelId.includes('deepseekv4')) {
+        return 72;
+      }
       if (modelId.includes('deepseek-v3') || modelId.includes('deepseekv3')) {
         return 1536;
       }
@@ -2632,6 +1716,34 @@ const missingFields = [];
       const requiredKvGB = requiredKvBytes / 1e9;
       const kvUtilization = maxTokensInCache > 0 ? (requiredTokens / maxTokensInCache) * 100 : 0;
 
+      
+      // === Update RIGHT PANEL: model params summary ===
+      (function updateParamsSummary() {
+        var el;
+        el = document.getElementById('qs-quant-method');  if (el) el.textContent = quantLabel;
+        el = document.getElementById('qs-bytes-per-param'); if (el) el.textContent = estimatedBytesPerParam.toFixed(4) + ' bytes';
+        el = document.getElementById('qs-total-weight');  if (el) el.textContent = formatBytes(modelWeights);
+        el = document.getElementById('qs-weight-per-gpu'); if (el) el.textContent = formatBytes(weightsPerGpu);
+        el = document.getElementById('qs-attn-type');     if (el) el.textContent = attentionType.toUpperCase();
+      })();
+
+      // === Update RIGHT PANEL: KV total hero ===
+      (function updateKvHero() {
+        var kvTD = document.getElementById('kv-total-display');
+        var kvTF = document.getElementById('kv-total-formula');
+        if (kvTD) kvTD.textContent = formatBytes(requiredKvGB);
+        if (kvTF) {
+          var tkns = maxModelLen * maxNumSeqs;
+          if (attentionType === 'mla') {
+            var lr = getEffectiveKvLoraRank();
+            kvTF.textContent = '2(K+V) x ' + lr + ' rank x ' + kvCacheDtypeBytes + 'B x ' + numLayers + 'L x ' + formatNumber(tkns) + ' tok / ' + numGpus + ' GPUs';
+          } else {
+            var kh = Math.ceil(kvHeads / numGpus);
+            kvTF.textContent = '2(K+V) x ' + kh + ' heads x ' + headDim + ' dim x ' + kvCacheDtypeBytes + 'B x ' + numLayers + 'L x ' + formatNumber(tkns) + ' tok';
+          }
+        }
+      })();
+
       // Update KV cache comparison section
       document.getElementById('kv-allocated-display').textContent = formatBytes(kvAvailable);
       document.getElementById('kv-required-display').textContent = formatBytes(requiredKvGB);
@@ -2754,122 +1866,8 @@ if (totalUsage > availableVram) {
         </p>
       `;
 
-      // Generate command
-      const commandOutput = document.getElementById('command-output');
-      let command = `<span class="flag">--model</span> <span class="value">MODEL_NAME</span>\n`;
-      command += `<span class="flag">--tensor-parallel-size</span> <span class="value">${numGpus}</span>\n`;
-      command += `<span class="flag">--max-model-len</span> <span class="value">${maxModelLen}</span>\n`;
-      command += `<span class="flag">--max-num-seqs</span> <span class="value">${maxNumSeqs}</span>\n`;
-      command += `<span class="flag">--max-num-batched-tokens</span> <span class="value">${maxBatchedTokens}</span>\n`;
-      command += `<span class="flag">--gpu-memory-utilization</span> <span class="value">${gpuUtilization}</span>\n`;
-      command += `<span class="flag">--enable-chunked-prefill</span>\n`;
-      
-      if (!cudaGraphsEnabled) {
-        command += `<span class="flag">--enforce-eager</span>\n`;
-      }
-      
-      if (numGpus > 1) {
-        command += `<span class="flag">--disable-custom-all-reduce</span>\n`;
-      }
-
-      commandOutput.innerHTML = command;
-      
       // Reinitialize Lucide icons for dynamic content
       lucide.createIcons();
-    }
-
-    // ============================================================================
-    // COPY COMMAND TO CLIPBOARD
-    // ============================================================================
-    function copyCommandToClipboard() {
-      const commandOutput = document.getElementById('command-output');
-      const html = commandOutput.innerHTML;
-      
-      // Extract text content from HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      const plainText = tempDiv.textContent || tempDiv.innerText || '';
-      
-      // Copy to clipboard
-      navigator.clipboard.writeText(plainText.trim()).then(() => {
-        // Show success feedback
-        const originalCursor = commandOutput.style.cursor;
-        const originalBg = commandOutput.style.background;
-        commandOutput.style.cursor = 'default';
-        commandOutput.style.background = 'rgba(0, 255, 136, 0.1)';
-        
-        // Show toast notification
-        showToast('命令已复制到剪贴板！', 'success');
-        
-        setTimeout(() => {
-          commandOutput.style.cursor = originalCursor;
-          commandOutput.style.background = originalBg;
-        }, 1000);
-      }).catch(err => {
-        console.error('Failed to copy command:', err);
-        showToast('复制命令失败', 'error');
-      });
-    }
-
-    // ============================================================================
-    // TOAST NOTIFICATION SYSTEM
-    // ============================================================================
-    function showToast(message, type = 'success') {
-      // Remove existing toast if any
-      const existingToast = document.getElementById('toast-notification');
-      if (existingToast) {
-        existingToast.remove();
-      }
-      
-      const toast = document.createElement('div');
-      toast.id = 'toast-notification';
-      toast.style.cssText = `
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.9rem;
-        font-weight: 500;
-        z-index: 1000;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      `;
-      
-      if (type === 'success') {
-        toast.style.background = 'rgba(0, 255, 136, 0.15)';
-        toast.style.color = 'var(--accent-green)';
-        toast.style.border = '1px solid rgba(0, 255, 136, 0.3)';
-      } else {
-        toast.style.background = 'rgba(255, 68, 102, 0.15)';
-        toast.style.color = 'var(--accent-red)';
-        toast.style.border = '1px solid rgba(255, 68, 102, 0.3)';
-      }
-      
-      const iconName = type === 'success' ? 'check-circle' : 'alert-circle';
-      toast.innerHTML = `<i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>${message}`;
-      
-      document.body.appendChild(toast);
-      lucide.createIcons();
-      
-      // Animate in
-      requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-      });
-      
-      // Auto remove after 3 seconds
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
     }
 
     // ============================================================================
@@ -3037,6 +2035,7 @@ option.textContent = '在下方输入 ID';
 
     // Initialize all Lucide icons after page load
     lucide.createIcons();
+  
   </script>
 </body>
 </html>
