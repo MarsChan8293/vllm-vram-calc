@@ -1,0 +1,362 @@
+metadata:
+  version: "1.0"
+  description: "vLLM VRAM Calculator built-in model presets"
+  source: "https://github.com/kvcache-ai/kvcache-blog/tree/main/data/kv_cache_calculator"
+
+models:
+  # ========== DeepSeek ==========
+  - id: deepseek-v4-pro
+    label: "DeepSeek-V4-Pro"
+    family: "DeepSeek"
+    hf_id: "deepseek-ai/DeepSeek-V4-Pro"
+    formula: "hybrid"
+    default_tokens: 1024
+    max_position_embeddings: 65536
+    source_url: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/raw/main/config.json"
+    vllm_config:
+      max_model_len: 65536
+      max_num_seqs: 4
+      cuda_graphs: 1
+    model_params:
+      weights: 1600
+      layers: 61
+      kv_heads: 1
+      head_dim: 192
+      attn_heads: 16
+      attention_type: "hybrid"
+      kv_lora_rank: 72
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 8
+      expert_params_ratio: 0.60
+      shared_experts: 1
+
+  - id: deepseek-v4-flash
+    label: "DeepSeek-V4-Flash"
+    family: "DeepSeek"
+    hf_id: "deepseek-ai/DeepSeek-V4-Flash"
+    formula: "hybrid"
+    default_tokens: 1024
+    max_position_embeddings: 65536
+    source_url: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/raw/main/config.json"
+    vllm_config:
+      max_model_len: 65536
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 284
+      layers: 43
+      kv_heads: 1
+      head_dim: 512
+      attn_heads: 16
+      attention_type: "hybrid"
+      kv_lora_rank: 72
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 6
+      expert_params_ratio: 0.975
+      shared_experts: 1
+      hybrid_active_layers: 43
+      hybrid_sliding_window: 128
+      hybrid_sliding_head_dim: 16
+      hybrid_compressed_head_dim: 512
+      hybrid_index_head_dim: 128
+      hybrid_ratio4_layers: 21
+      hybrid_ratio128_layers: 20
+      hybrid_kv_precision_bytes: 1
+      hybrid_indexer_precision_bytes: 0.5
+
+  - id: deepseek-v3-2
+    label: "DeepSeek-V3.2"
+    family: "DeepSeek"
+    hf_id: "deepseek-ai/DeepSeek-V3.2"
+    formula: "mla"
+    default_tokens: 1024
+    max_position_embeddings: 65536
+    source_url: "https://huggingface.co/deepseek-ai/DeepSeek-V3.2/raw/main/config.json"
+    vllm_config:
+      max_model_len: 65536
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 671
+      layers: 61
+      kv_heads: 1
+      head_dim: 128
+      attn_heads: 128
+      attention_type: "mla"
+      kv_lora_rank: 1536
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 8
+      expert_params_ratio: 0.60
+      shared_experts: 1
+
+  - id: deepseek-r1
+    label: "DeepSeek-R1"
+    family: "DeepSeek"
+    hf_id: "deepseek-ai/DeepSeek-R1"
+    formula: "mla"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/deepseek-ai/DeepSeek-R1/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 4
+      cuda_graphs: 1
+    model_params:
+      weights: 671
+      layers: 61
+      kv_heads: 1
+      head_dim: 128
+      attn_heads: 128
+      attention_type: "mla"
+      kv_lora_rank: 1536
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 8
+      expert_params_ratio: 0.60
+      shared_experts: 1
+
+  # ========== Qwen ==========
+  - id: qwen3-32b
+    label: "Qwen3-32B"
+    family: "Qwen"
+    hf_id: "Qwen/Qwen3-32B"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/Qwen/Qwen3-32B/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 32
+      layers: 64
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 40
+      attention_type: "gqa"
+      moe_enabled: 0
+
+  - id: qwen3-14b
+    label: "Qwen3-14B"
+    family: "Qwen"
+    hf_id: "Qwen/Qwen3-14B"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/Qwen/Qwen3-14B/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 14
+      layers: 48
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 40
+      attention_type: "gqa"
+      moe_enabled: 0
+
+  # ========== Kimi ==========
+  - id: kimi-k2-6
+    label: "Kimi-K2.6"
+    family: "Kimi"
+    hf_id: "moonshotai/Kimi-K2.6"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 262144
+    source_url: "https://huggingface.co/moonshotai/Kimi-K2.6/raw/main/config.json"
+    vllm_config:
+      max_model_len: 262144
+      max_num_seqs: 4
+      cuda_graphs: 1
+    model_params:
+      weights: 1100
+      layers: 80
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 64
+      attention_type: "gqa"
+      moe_enabled: 1
+      num_experts: 64
+      topk_experts: 6
+      expert_params_ratio: 0.55
+      shared_experts: 2
+
+  - id: kimi-k2-7-code
+    label: "Kimi-K2.7-Code"
+    family: "Kimi"
+    hf_id: "moonshotai/Kimi-K2.7-Code"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 262144
+    source_url: "https://huggingface.co/moonshotai/Kimi-K2.7-Code/raw/main/config.json"
+    vllm_config:
+      max_model_len: 262144
+      max_num_seqs: 4
+      cuda_graphs: 1
+    model_params:
+      weights: 1100
+      layers: 80
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 64
+      attention_type: "gqa"
+      moe_enabled: 1
+      num_experts: 64
+      topk_experts: 6
+      expert_params_ratio: 0.55
+      shared_experts: 2
+
+  # ========== GLM ==========
+  - id: glm-5
+    label: "GLM-5"
+    family: "GLM"
+    hf_id: "zai-org/GLM-5"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 32768
+    source_url: "https://huggingface.co/zai-org/GLM-5/raw/main/config.json"
+    vllm_config:
+      max_model_len: 32768
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 32
+      layers: 40
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 32
+      attention_type: "gqa"
+      moe_enabled: 0
+
+  - id: glm-4-7
+    label: "GLM-4.7"
+    family: "GLM"
+    hf_id: "zai-org/GLM-4.7"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 32768
+    source_url: "https://huggingface.co/zai-org/GLM-4.7/raw/main/config.json"
+    vllm_config:
+      max_model_len: 32768
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 9
+      layers: 40
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 32
+      attention_type: "gqa"
+      moe_enabled: 0
+
+  - id: glm-5-1
+    label: "GLM-5.1"
+    family: "GLM"
+    hf_id: "zai-org/GLM-5.1"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/zai-org/GLM-5.1/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 754
+      layers: 64
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 64
+      attention_type: "gqa"
+      moe_enabled: 1
+      num_experts: 64
+      topk_experts: 6
+      expert_params_ratio: 0.55
+      shared_experts: 2
+
+  - id: glm-5-1-fp8
+    label: "GLM-5.1-FP8"
+    family: "GLM"
+    hf_id: "zai-org/GLM-5.1-FP8"
+    formula: "standard_gqa"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/zai-org/GLM-5.1-FP8/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      quant_method: "fp8"
+      cuda_graphs: 1
+    model_params:
+      weights: 754
+      layers: 64
+      kv_heads: 8
+      head_dim: 128
+      attn_heads: 64
+      attention_type: "gqa"
+      moe_enabled: 1
+      num_experts: 64
+      topk_experts: 6
+      expert_params_ratio: 0.55
+      shared_experts: 2
+
+  - id: glm-5-2
+    label: "GLM-5.2"
+    family: "GLM"
+    hf_id: "zai-org/GLM-5.2"
+    formula: "mla"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/zai-org/GLM-5.2/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      cuda_graphs: 1
+    model_params:
+      weights: 744
+      layers: 78
+      kv_heads: 1
+      head_dim: 64
+      attn_heads: 64
+      attention_type: "mla"
+      kv_lora_rank: 512
+      qk_rope_head_dim: 64
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 8
+      expert_params_ratio: 0.974
+      shared_experts: 1
+
+  - id: glm-5-2-fp8
+    label: "GLM-5.2-FP8"
+    family: "GLM"
+    hf_id: "zai-org/GLM-5.2-FP8"
+    formula: "mla"
+    default_tokens: 1024
+    max_position_embeddings: 131072
+    source_url: "https://huggingface.co/zai-org/GLM-5.2-FP8/raw/main/config.json"
+    vllm_config:
+      max_model_len: 131072
+      max_num_seqs: 8
+      quant_method: "fp8"
+      cuda_graphs: 1
+    model_params:
+      weights: 744
+      layers: 78
+      kv_heads: 1
+      head_dim: 64
+      attn_heads: 64
+      attention_type: "mla"
+      kv_lora_rank: 512
+      qk_rope_head_dim: 64
+      moe_enabled: 1
+      num_experts: 256
+      topk_experts: 8
+      expert_params_ratio: 0.974
+      shared_experts: 1

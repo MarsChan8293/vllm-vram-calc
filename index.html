@@ -6,6 +6,7 @@
   <title>vLLM VRAM 计算器</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <style>
     :root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-tertiary:#1a1a24;--bg-card:#16161f;--border:#2a2a3a;--border-highlight:#3a3a4a;--text-primary:#e8e8ed;--text-secondary:#9090a0;--text-muted:#606070;--accent-green:#00ff88;--accent-green-dim:#00cc6a;--accent-red:#ff4466;--accent-yellow:#ffcc00;--accent-blue:#4488ff;--accent-purple:#aa66ff}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -17,13 +18,13 @@
     .subtitle{color:var(--text-secondary);font-size:1.1rem}
 
     /* ===== 3×2 GRID ===== */
-    .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;grid-template-areas:"model-input model-params""vllm-input kvcache-calc""hardware-input memory-breakdown";gap:1.5rem 2rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;grid-template-areas:"model-input model-params""hardware-input memory-breakdown""vllm-input kvcache-calc";gap:1.5rem 2rem}
     .area-model-input{grid-area:model-input}.area-model-params{grid-area:model-params}
     .area-vllm-input{grid-area:vllm-input}.area-kvcache-calc{grid-area:kvcache-calc}
     .area-hardware-input{grid-area:hardware-input}.area-memory-breakdown{grid-area:memory-breakdown}
 
     @media(max-width:1200px){.container{padding:1.5rem}}
-    @media(max-width:1000px){.grid{grid-template-columns:1fr;grid-template-areas:"model-input""model-params""vllm-input""kvcache-calc""hardware-input""memory-breakdown";gap:1.25rem}.panel{padding:1.25rem}}
+    @media(max-width:1000px){.grid{grid-template-columns:1fr;grid-template-areas:"model-input""model-params""hardware-input""memory-breakdown""vllm-input""kvcache-calc";gap:1.25rem}.panel{padding:1.25rem}}
     @media(max-width:768px){.container{padding:1rem}h1{font-size:2rem}.subtitle{font-size:1rem}header{margin-bottom:2rem;padding-bottom:1.5rem}.panel{padding:1rem}.input-row{grid-template-columns:1fr;gap:.75rem}.panel-header{margin-bottom:1rem;padding-bottom:.75rem}.panel-title{font-size:1rem}.panel-icon{width:28px;height:28px}.presets{gap:.4rem}.preset-btn{padding:.4rem .75rem;font-size:.8rem}.hf-input-row{flex-direction:column;gap:.75rem}.hf-fetch-btn{width:100%;padding:.75rem}.breakdown-table th,.breakdown-table td{padding:.5rem .4rem;font-size:.8rem}.memory-legend{gap:.5rem}.legend-item{font-size:.75rem}.selection-grid{grid-template-columns:1fr}}
     @media(max-width:480px){.container{padding:.75rem}h1{font-size:1.75rem}.panel{padding:.875rem}.result-row{flex-direction:column;align-items:flex-start;gap:.25rem}.model-info-grid{grid-template-columns:1fr}}
 
@@ -153,6 +154,8 @@
     .section-divider.collapsible.collapsed .toggle-icon{transform:rotate(-90deg)}
     #quant-section-content{overflow:hidden;transition:max-height .3s,opacity .3s;max-height:500px;opacity:1}
     #quant-section-content.collapsed{max-height:0;opacity:0}
+    #advanced-section-content{overflow:hidden;transition:max-height .3s,opacity .3s;max-height:500px;opacity:1}
+    #advanced-section-content.collapsed{max-height:0;opacity:0}
 
     /* ===== KV COMPARISON BAR ===== */
     .kv-comparison-bar-container{margin-top:1rem;margin-bottom:.5rem}
@@ -187,42 +190,43 @@
           </div>
           <div class="selection-grid">
             <div class="form-group"><label for="model-vendor">厂商</label>
-              <select id="model-vendor"><option value="DeepSeek">DeepSeek</option><option value="Qwen">Qwen</option><option value="GLM">GLM</option><option value="Custom">自定义/其他</option></select>
+              <select id="model-vendor"><option value="DeepSeek">DeepSeek</option><option value="Qwen">Qwen</option><option value="Kimi">Kimi</option><option value="GLM">GLM</option><option value="Custom">自定义/其他</option></select>
             </div>
             <div class="form-group"><label for="model-preset">预设模型</label><select id="model-preset"></select></div>
           </div>
-          <div class="form-group">
-            <label for="hf-model-id">HuggingFace 模型 ID</label>
-            <div class="hf-input-row">
-              <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3" aria-label="HuggingFace model ID" aria-describedby="hf-status">
-              <button class="hf-fetch-btn" id="hf-fetch-btn" aria-label="Fetch model configuration from HuggingFace">
-                <span class="btn-text">获取</span>
-                <span class="btn-loading" style="display:none" aria-hidden="true"><svg class="spinner" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg></span>
-              </button>
-            </div>
-            <p class="hint" id="hf-status" role="status" aria-live="polite">输入 ID 或选择预设，然后点击获取</p>
-          </div>
           <div class="input-row">
-            <div class="form-group"><label for="model-weights">参数量（B）</label><input type="number" id="model-weights" value="36.3" min="0.1" max="500" step="0.1"><p class="hint">BF16 基础大小。实际 = 此值 × 量化比例</p></div>
-            <div class="form-group"><label for="num-layers">层数</label><input type="number" id="num-layers" value="32" min="1" max="200" step="1"></div>
-          </div>
-          <div class="input-row">
-            <div class="form-group"><label for="kv-heads">KV Heads (GQA)</label><input type="number" id="kv-heads" value="8" min="1" max="128" step="1"><p class="hint">Key-Value 注意力头数</p></div>
-            <div class="form-group"><label for="head-dim">Head 维度</label><input type="number" id="head-dim" value="64" min="32" max="256" step="8"></div>
-          </div>
-          <div class="input-row">
-            <div class="form-group"><label for="attn-heads">注意力头数（总数）</label><input type="number" id="attn-heads" value="8" min="1" max="128" step="1"><p class="hint">总注意力头数（≥ KV heads）</p></div>
-            <div class="form-group"><label for="activation-dtype">激活数据类型</label>
-              <select id="activation-dtype"><option value="2">BF16/FP16 (2 bytes)</option><option value="1" selected>FP8/INT8 (1 byte)</option></select>
+            <div class="form-group"><label for="model-weights">参数量（B）</label><input type="number" id="model-weights" value="36.3" min="0.1" max="5000" step="0.1"><p class="hint">从预设或 HF 自动获取，可手动调整</p></div>
+            <div class="form-group"><label for="hf-model-id">HuggingFace 模型 ID</label>
+              <div class="hf-input-row">
+                <input type="text" id="hf-model-id" placeholder="e.g. deepseek-ai/DeepSeek-V3" aria-label="HuggingFace model ID" aria-describedby="hf-status">
+                <button class="hf-fetch-btn" id="hf-fetch-btn" aria-label="Fetch model configuration from HuggingFace">
+                  <span class="btn-text">获取</span>
+                  <span class="btn-loading" style="display:none" aria-hidden="true"><svg class="spinner" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg></span>
+                </button>
+              </div>
+              <p class="hint" id="hf-status" role="status" aria-live="polite">输入 ID 或选择预设，然后点击获取</p>
             </div>
           </div>
-          <div class="input-row" style="margin-top:1rem">
-            <div class="form-group"><label for="attention-type">注意力架构</label>
-              <select id="attention-type"><option value="auto" selected>自动检测</option><option value="mha">MHA (Multi-Head Attention)</option><option value="gqa">GQA (Grouped Query Attention)</option><option value="mla">MLA (Multi-head Latent Attention)</option></select>
-              <p class="hint" id="attention-type-detected">输入 HuggingFace 模型 ID 以自动检测</p>
-            </div>
-            <div class="form-group" id="kv-lora-rank-group" style="display:none"><label for="kv-lora-rank">KV LoRA Rank</label><input type="number" id="kv-lora-rank" value="1536" min="64" max="8192" step="64"><p class="hint">MLA 压缩维度（从 HF 自动检测）</p></div>
-          </div>
+          <!-- Hidden fields for model parameters (auto-populated from HF API or presets) -->
+          <input type="hidden" id="num-layers" value="32">
+          <input type="hidden" id="kv-heads" value="8">
+          <input type="hidden" id="head-dim" value="64">
+          <input type="hidden" id="attn-heads" value="8">
+          <input type="hidden" id="activation-dtype" value="1">
+          <input type="hidden" id="attention-type" value="auto">
+          <input type="hidden" id="kv-lora-rank" value="1536">
+          <input type="hidden" id="qk-rope-head-dim" value="64">
+          <input type="hidden" id="hybrid-enabled" value="0">
+          <input type="hidden" id="sliding-window" value="4096">
+          <input type="hidden" id="active-layers" value="61">
+          <input type="hidden" id="compressed-head-dim" value="512">
+          <input type="hidden" id="index-head-dim" value="128">
+          <input type="hidden" id="sliding-head-dim" value="16">
+          <input type="hidden" id="ratio4-layers" value="30">
+          <input type="hidden" id="ratio128-layers" value="31">
+          <input type="hidden" id="kv-precision" value="1">
+          <input type="hidden" id="indexer-precision" value="0.5">
+          <input type="hidden" id="include-draft-kv" value="0">
           <div class="section-divider collapsible" id="quant-toggle" style="cursor:pointer;user-select:none"><span>量化设置</span><i data-lucide="chevron-down" class="toggle-icon" style="width:16px;height:16px;transition:transform .2s"></i></div>
           <div id="quant-section-content">
             <div class="form-group"><label for="quant-method">权重量化</label>
@@ -246,53 +250,59 @@
               <p>请在左侧输入 HuggingFace 模型 ID<br>并点击 <strong>获取</strong> 以查看模型详情</p>
             </div>
           </div>
-          <div class="quant-summary" id="quant-weight-summary">
-            <div class="section-title" style="margin-bottom:.5rem">权重 &amp; 量化摘要</div>
-            <div class="quant-summary-row"><span class="qs-label">量化方式</span><span class="qs-value" id="qs-quant-method">INT8</span></div>
-            <div class="quant-summary-row"><span class="qs-label">每参数字节数</span><span class="qs-value" id="qs-bytes-per-param">1.00 B</span></div>
-            <div class="quant-summary-row"><span class="qs-label">权重总大小（全模型）</span><span class="qs-value" id="qs-total-weight">36.30 GB</span></div>
-            <div class="quant-summary-row"><span class="qs-label">每卡权重</span><span class="qs-value" id="qs-weight-per-gpu">18.15 GB</span></div>
-            <div class="quant-summary-row"><span class="qs-label">注意力架构</span><span class="qs-value" id="qs-attn-type">GQA</span></div>
+          <div class="quant-summary" id="arch-summary" style="margin-top:0.75rem">
+            <div class="section-title" style="margin-bottom:.5rem">模型架构信息</div>
+            <div class="quant-summary-row"><span class="qs-label">层数</span><span class="qs-value" id="qs-layers">-</span></div>
+            <div class="quant-summary-row"><span class="qs-label">注意力架构</span><span class="qs-value" id="qs-attn-type">-</span></div>
+            <div class="quant-summary-row"><span class="qs-label">注意力头数</span><span class="qs-value" id="qs-attn-heads">-</span></div>
+            <div class="quant-summary-row"><span class="qs-label">KV Heads</span><span class="qs-value" id="qs-kv-heads">-</span></div>
+            <div class="quant-summary-row"><span class="qs-label">Head 维度</span><span class="qs-value" id="qs-head-dim">-</span></div>
           </div>
+
         </div>
       </div>
 
-      <!-- ========== ROW 2 LEFT: vLLM 配置 ========== -->
+      <!-- ========== ROW 3 LEFT: vLLM 配置 ========== -->
       <div class="area-vllm-input">
         <div class="panel" role="region" aria-labelledby="vllm-config-title">
           <div class="panel-header">
             <div class="panel-icon config" aria-hidden="true"><i data-lucide="settings" style="width:20px;height:20px"></i></div>
-            <h2 class="panel-title" id="vllm-config-title">② vLLM 配置</h2>
+            <h2 class="panel-title" id="vllm-config-title">③ vLLM 配置</h2>
           </div>
           <div class="input-row">
             <div class="form-group"><label for="max-model-len">最大模型长度</label><input type="number" id="max-model-len" value="131072" min="1024" max="1048576" step="1024"><p class="hint">最大上下文窗口</p></div>
             <div class="form-group"><label for="max-num-seqs">最大并发序列数</label><input type="number" id="max-num-seqs" value="8" min="1" max="256" step="1"><p class="hint">并发序列数量</p></div>
           </div>
           <div class="input-row">
-            <div class="form-group"><label for="max-batched-tokens">最大批处理 Token 数</label><input type="number" id="max-batched-tokens" value="65536" min="1024" max="262144" step="1024"><p class="hint">每次前向传播的 Token 数</p></div>
             <div class="form-group"><label for="kv-cache-dtype">KV Cache 数据类型</label>
               <select id="kv-cache-dtype"><option value="2" selected>BF16/FP16 (2 字节)</option><option value="1">FP8 (1 字节)</option></select>
             </div>
+            <div class="form-group"><label for="overhead-estimate">预估开销 (GB)</label><input type="number" id="overhead-estimate" value="0" min="0" step="0.01" readonly><p class="hint">根据激活缓冲区自动计算</p></div>
           </div>
-          <div class="input-row">
-            <div class="form-group"><label for="cuda-graphs">CUDA Graphs</label>
-              <select id="cuda-graphs"><option value="1" selected>启用（自动计算）</option><option value="0">禁用 (--enforce-eager)</option></select>
+
+          <!-- ===== Advanced Settings ===== -->
+          <div class="section-divider collapsible" id="advanced-toggle" style="cursor:pointer;user-select:none"><span>高级设置</span><i data-lucide="chevron-down" class="toggle-icon" style="width:16px;height:16px;transition:transform .2s"></i></div>
+          <div id="advanced-section-content">
+            <div class="input-row">
+              <div class="form-group"><label for="max-batched-tokens">最大批处理 Token 数</label><input type="number" id="max-batched-tokens" value="65536" min="1024" max="262144" step="1024"><p class="hint">每次前向传播的 Token 数</p></div>
+              <div class="form-group"><label for="cuda-graphs">CUDA Graphs</label>
+                <select id="cuda-graphs"><option value="1" selected>启用（自动计算）</option><option value="0">禁用 (--enforce-eager)</option></select>
+              </div>
             </div>
-            <div class="form-group"><label for="overhead-estimate">预估开销 (GB)</label><input type="number" id="overhead-estimate" value="0" min="0" step="0.01" readonly><p class="hint">根据激活缓冲区计算</p></div>
-          </div>
-          <div class="input-row">
-            <div class="form-group"><label for="overhead-padding">额外开销 (GB)</label><input type="number" id="overhead-padding" value="1.0" min="0" max="10" step="0.1"><p class="hint">框架/MoE/编译开销。大模型建议 1-2 GB</p></div>
-            <div class="form-group"><label for="overhead-notes">开销输入</label><div class="hint" id="overhead-notes">Prefill + decode tokens × 每 GPU 隐藏层大小 × dtype</div></div>
+            <div class="input-row">
+              <div class="form-group"><label for="overhead-padding">额外开销 (GB)</label><input type="number" id="overhead-padding" value="1.0" min="0" max="10" step="0.1"><p class="hint">框架/MoE/编译开销。大模型建议 1-2 GB</p></div>
+            </div>
+            <div class="form-group"><div class="hint" id="overhead-notes">Prefill + decode tokens × 每 GPU 隐藏层大小 × dtype</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ========== ROW 2 RIGHT: KV Cache 大小计算 ========== -->
+      <!-- ========== ROW 3 RIGHT: KV Cache 大小计算 ========== -->
       <div class="area-kvcache-calc">
         <div class="panel panel-output" role="region" aria-labelledby="kvcache-calc-title">
           <div class="panel-header">
             <div class="panel-icon kvcache" aria-hidden="true"><i data-lucide="database" style="width:20px;height:20px"></i></div>
-            <h2 class="panel-title" id="kvcache-calc-title">② KV Cache 大小计算</h2>
+            <h2 class="panel-title" id="kvcache-calc-title">③ KV Cache 大小计算</h2>
           </div>
           <div class="kv-total-hero">
             <div class="kv-total-label">KV Cache 总需求</div>
@@ -320,15 +330,34 @@
             <div class="result-row"><span class="result-label">平均上下文（所有序列）</span><span class="result-value" id="avg-context-all">-</span></div>
             <div class="result-row"><span class="result-label">推荐 max-num-seqs</span><span class="result-value highlight" id="recommended-seqs">-</span></div>
           </div>
+          <!-- DeepSeek V4 Hybrid Sparse Attention Calculation Steps -->
+          <div class="results-section" id="hybrid-calc-section" style="display:none;">
+            <div class="section-title" style="color:var(--accent-purple)">DeepSeek V4 Hybrid Sparse Attention 计算过程</div>
+            <div class="result-row"><span class="result-label">滑动窗口 KV</span><span class="result-value" id="hybrid-sliding-kv">-</span></div>
+            <p class="hint" id="hybrid-sliding-formula" style="margin-top:-.5rem;margin-bottom:.5rem"></p>
+            <div class="result-row"><span class="result-label">压缩 KV</span><span class="result-value" id="hybrid-compressed-kv">-</span></div>
+            <p class="hint" id="hybrid-compressed-formula" style="margin-top:-.5rem;margin-bottom:.5rem"></p>
+            <div class="result-row"><span class="result-label">KV Cache 小计 (sliding + compressed)</span><span class="result-value highlight" id="hybrid-kv-total">-</span></div>
+            <p class="hint" id="hybrid-kv-formula" style="margin-top:-.5rem;margin-bottom:.5rem"></p>
+            <div class="result-row"><span class="result-label">Indexer Cache</span><span class="result-value" id="hybrid-indexer">-</span></div>
+            <p class="hint" id="hybrid-indexer-formula" style="margin-top:-.5rem;margin-bottom:.5rem"></p>
+            <div class="result-row"><span class="result-label">每序列总 Cache (KV + Indexer)</span><span class="result-value highlight" id="hybrid-per-seq">-</span></div>
+            <div class="result-row"><span class="result-label">所有序列总 Cache</span><span class="result-value highlight" id="hybrid-total">-</span></div>
+            <div class="result-row"><span class="result-label">每 Token 大小</span><span class="result-value" id="hybrid-per-token">-</span></div>
+            <p class="hint" style="margin-top:.5rem;color:var(--text-muted)">
+              <i data-lucide="info" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px"></i>
+              生产环境默认使用 FP8 attention cache 和 FP4 indexer cache
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- ========== ROW 3 LEFT: 硬件配置 ========== -->
+      <!-- ========== ROW 2 LEFT: 硬件配置 ========== -->
       <div class="area-hardware-input">
         <div class="panel" role="region" aria-labelledby="gpu-config-title">
           <div class="panel-header">
             <div class="panel-icon gpu" aria-hidden="true"><i data-lucide="cpu" style="width:20px;height:20px"></i></div>
-            <h2 class="panel-title" id="gpu-config-title">③ 硬件配置</h2>
+            <h2 class="panel-title" id="gpu-config-title">② 硬件配置</h2>
           </div>
           <div class="form-group"><label for="gpu-preset">GPU 预设</label>
             <select id="gpu-preset" aria-label="Select GPU preset from common models">
@@ -346,16 +375,37 @@
             <div class="form-group"><label for="gpu-vram">每卡显存 (GB)</label><input type="number" id="gpu-vram" value="64.0" min="1" max="192" step="0.1" aria-label="VRAM per GPU in decimal gigabytes" aria-describedby="gpu-vram-hint"><p class="hint" id="gpu-vram-hint">1 GB = 1,000³ bytes（十进制）</p></div>
             <div class="form-group"><label for="num-gpus">GPU 数量（TP 大小）</label><input type="number" id="num-gpus" value="2" min="1" max="8" step="1" aria-label="Number of GPUs for tensor parallelism"></div>
           </div>
+          <!-- ===== Parallelism Strategy ===== -->
+          <div class="section-divider"><span>并行策略</span></div>
+          <div class="input-row">
+            <div class="form-group">
+              <label for="ep-enabled">专家并行 (EP)</label>
+              <select id="ep-enabled" aria-label="Expert parallelism toggle">
+                <option value="0" selected>关闭 (EP=1)</option>
+                <option value="1">开启 (EP = TP × DP)</option>
+              </select>
+              <p class="hint">开启后专家权重按 TP×DP 分摊到所有卡</p>
+            </div>
+            <div class="form-group"><label for="dp-size">DP 大小 (Data Parallelism)</label><input type="number" id="dp-size" value="1" min="1" max="8" step="1" aria-label="Data parallelism size"><p class="hint">数据并行副本数（不影响每卡权重）</p></div>
+          </div>
+          <div class="form-group"><label for="total-gpus-display">总 GPU 数（TP × EP × DP）</label><input type="text" id="total-gpus-display" value="2" readonly aria-label="Total GPU count"><p class="hint" id="total-gpus-hint">TP × EP × DP</p></div>
+          <!-- Hidden MoE fields (auto-populated from HF API or presets) -->
+          <input type="hidden" id="moe-enabled" value="0">
+          <input type="hidden" id="expert-params-ratio" value="0.60">
+          <input type="hidden" id="num-experts" value="8">
+          <input type="hidden" id="topk-experts" value="2">
+          <input type="hidden" id="expert-sharding" value="ep">
+          <input type="hidden" id="shared-experts" value="1">
           <div class="form-group"><label for="gpu-utilization">GPU 显存利用率</label><input type="number" id="gpu-utilization" value="0.90" min="0.5" max="0.99" step="0.01" aria-label="GPU memory utilization ratio" aria-describedby="gpu-util-hint"><p class="hint" id="gpu-util-hint">通常 0.85-0.95。较低值可为峰值预留更多空间</p></div>
         </div>
       </div>
 
-      <!-- ========== ROW 3 RIGHT: 内存分配明细 ========== -->
+      <!-- ========== ROW 2 RIGHT: 内存分配明细 ========== -->
       <div class="area-memory-breakdown">
         <div class="panel panel-output" role="region" aria-labelledby="memory-breakdown-title">
           <div class="panel-header">
             <div class="panel-icon result" aria-hidden="true"><i data-lucide="bar-chart-3" style="width:20px;height:20px"></i></div>
-            <h2 class="panel-title" id="memory-breakdown-title">③ 内存分配明细（每卡）</h2>
+            <h2 class="panel-title" id="memory-breakdown-title">② 内存分配明细（每卡）</h2>
           </div>
           <table class="breakdown-table" role="table" aria-label="Memory usage breakdown per GPU">
             <thead><tr><th scope="col">组件</th><th scope="col">大小</th></tr></thead>
@@ -392,20 +442,29 @@
     lucide.createIcons();
 
     // Built-in Models Data
+    // Architecture params are auto-applied when selecting a preset
     const BUILTIN_MODELS = {
       'DeepSeek': [
-        { name: 'DeepSeek-V4-Pro', id: 'deepseek-ai/DeepSeek-V4-Pro' },
-        { name: 'DeepSeek-V4-Flash', id: 'deepseek-ai/DeepSeek-V4-Flash' },
-        { name: 'DeepSeek-V3.2', id: 'deepseek-ai/DeepSeek-V3.2' },
-        { name: 'DeepSeek-R1', id: 'deepseek-ai/DeepSeek-R1' },
+        { name: 'DeepSeek-V4-Pro', id: 'deepseek-ai/DeepSeek-V4-Pro', vllmConfig: { maxModelLen: 65536, maxNumSeqs: 4, cudaGraphs: 1 }, modelParams: { weights: 1600, layers: 61, kvHeads: 1, headDim: 192, attnHeads: 16, attentionType: 'hybrid', kvLoraRank: 72, moeEnabled: 1, numExperts: 256, topkExperts: 8, expertParamsRatio: 0.60, sharedExperts: 1 } },
+        { name: 'DeepSeek-V4-Flash', id: 'deepseek-ai/DeepSeek-V4-Flash', vllmConfig: { maxModelLen: 65536, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 284, layers: 43, kvHeads: 1, headDim: 512, attnHeads: 16, attentionType: 'hybrid', kvLoraRank: 72, moeEnabled: 1, numExperts: 256, topkExperts: 6, expertParamsRatio: 0.975, sharedExperts: 1, hybridActiveLayers: 43, hybridSlidingWindow: 128, hybridSlidingHeadDim: 16, hybridCompressedHeadDim: 512, hybridIndexHeadDim: 128, hybridRatio4Layers: 21, hybridRatio128Layers: 20, hybridKvPrecisionBytes: 1, hybridIndexerPrecisionBytes: 0.5 } },
+        { name: 'DeepSeek-V3.2', id: 'deepseek-ai/DeepSeek-V3.2', vllmConfig: { maxModelLen: 65536, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 671, layers: 61, kvHeads: 1, headDim: 128, attnHeads: 128, attentionType: 'mla', kvLoraRank: 1536, moeEnabled: 1, numExperts: 256, topkExperts: 8, expertParamsRatio: 0.60, sharedExperts: 1 } },
+        { name: 'DeepSeek-R1', id: 'deepseek-ai/DeepSeek-R1', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 4, cudaGraphs: 1 }, modelParams: { weights: 671, layers: 61, kvHeads: 1, headDim: 128, attnHeads: 128, attentionType: 'mla', kvLoraRank: 1536, moeEnabled: 1, numExperts: 256, topkExperts: 8, expertParamsRatio: 0.60, sharedExperts: 1 } },
       ],
       'Qwen': [
-        { name: 'Qwen3-32B', id: 'Qwen/Qwen3-32B' },
-        { name: 'Qwen3-14B', id: 'Qwen/Qwen3-14B' },
+        { name: 'Qwen3-32B', id: 'Qwen/Qwen3-32B', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 32, layers: 64, kvHeads: 8, headDim: 128, attnHeads: 40, attentionType: 'gqa', moeEnabled: 0 } },
+        { name: 'Qwen3-14B', id: 'Qwen/Qwen3-14B', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 14, layers: 48, kvHeads: 8, headDim: 128, attnHeads: 40, attentionType: 'gqa', moeEnabled: 0 } },
+      ],
+      'Kimi': [
+        { name: 'Kimi-K2.6', id: 'moonshotai/Kimi-K2.6', vllmConfig: { maxModelLen: 262144, maxNumSeqs: 4, cudaGraphs: 1 }, modelParams: { weights: 1100, layers: 80, kvHeads: 8, headDim: 128, attnHeads: 64, attentionType: 'gqa', moeEnabled: 1, numExperts: 64, topkExperts: 6, expertParamsRatio: 0.55, sharedExperts: 2 } },
+        { name: 'Kimi-K2.7-Code', id: 'moonshotai/Kimi-K2.7-Code', vllmConfig: { maxModelLen: 262144, maxNumSeqs: 4, cudaGraphs: 1 }, modelParams: { weights: 1100, layers: 80, kvHeads: 8, headDim: 128, attnHeads: 64, attentionType: 'gqa', moeEnabled: 1, numExperts: 64, topkExperts: 6, expertParamsRatio: 0.55, sharedExperts: 2 } },
       ],
       'GLM': [
-        { name: 'GLM-5', id: 'zai-org/GLM-5' },
-        { name: 'GLM-4.7', id: 'zai-org/GLM-4.7' },
+        { name: 'GLM-5', id: 'zai-org/GLM-5', vllmConfig: { maxModelLen: 32768, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 32, layers: 40, kvHeads: 8, headDim: 128, attnHeads: 32, attentionType: 'gqa', moeEnabled: 0 } },
+        { name: 'GLM-4.7', id: 'zai-org/GLM-4.7', vllmConfig: { maxModelLen: 32768, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 9, layers: 40, kvHeads: 8, headDim: 128, attnHeads: 32, attentionType: 'gqa', moeEnabled: 0 } },
+        { name: 'GLM-5.1', id: 'zai-org/GLM-5.1', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 754, layers: 64, kvHeads: 8, headDim: 128, attnHeads: 64, attentionType: 'gqa', moeEnabled: 1, numExperts: 64, topkExperts: 6, expertParamsRatio: 0.55, sharedExperts: 2 } },
+        { name: 'GLM-5.1-FP8', id: 'zai-org/GLM-5.1-FP8', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, quantMethod: 'fp8', cudaGraphs: 1 }, modelParams: { weights: 754, layers: 64, kvHeads: 8, headDim: 128, attnHeads: 64, attentionType: 'gqa', moeEnabled: 1, numExperts: 64, topkExperts: 6, expertParamsRatio: 0.55, sharedExperts: 2 } },
+        { name: 'GLM-5.2', id: 'zai-org/GLM-5.2', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, cudaGraphs: 1 }, modelParams: { weights: 744, layers: 78, kvHeads: 1, headDim: 64, attnHeads: 64, attentionType: 'mla', kvLoraRank: 512, qkRopeHeadDim: 64, moeEnabled: 1, numExperts: 256, topkExperts: 8, expertParamsRatio: 0.974, sharedExperts: 1 } },
+        { name: 'GLM-5.2-FP8', id: 'zai-org/GLM-5.2-FP8', vllmConfig: { maxModelLen: 131072, maxNumSeqs: 8, quantMethod: 'fp8', cudaGraphs: 1 }, modelParams: { weights: 744, layers: 78, kvHeads: 1, headDim: 64, attnHeads: 64, attentionType: 'mla', kvLoraRank: 512, qkRopeHeadDim: 64, moeEnabled: 1, numExperts: 256, topkExperts: 8, expertParamsRatio: 0.974, sharedExperts: 1 } },
       ],
     };
 
@@ -429,9 +488,33 @@
       overheadPadding: document.getElementById('overhead-padding'),
       attentionType: document.getElementById('attention-type'),
       kvLoraRank: document.getElementById('kv-lora-rank'),
+      qkRopeHeadDim: document.getElementById('qk-rope-head-dim'),
+      // Parallelism
+      epEnabled: document.getElementById('ep-enabled'),
+      dpSize: document.getElementById('dp-size'),
+      totalGpusDisplay: document.getElementById('total-gpus-display'),
+      // MoE
+      moeEnabled: document.getElementById('moe-enabled'),
+      expertParamsRatio: document.getElementById('expert-params-ratio'),
+      numExperts: document.getElementById('num-experts'),
+      topkExperts: document.getElementById('topk-experts'),
+      expertSharding: document.getElementById('expert-sharding'),
+      sharedExperts: document.getElementById('shared-experts'),
       // Model Selection Elements
       modelVendor: document.getElementById('model-vendor'),
       modelPreset: document.getElementById('model-preset'),
+      // DeepSeek V4 Hybrid Sparse Attention
+      hybridEnabled: document.getElementById('hybrid-enabled'),
+      slidingWindow: document.getElementById('sliding-window'),
+      activeLayers: document.getElementById('active-layers'),
+      compressedHeadDim: document.getElementById('compressed-head-dim'),
+      slidingHeadDim: document.getElementById('sliding-head-dim'),
+      indexHeadDim: document.getElementById('index-head-dim'),
+      ratio4Layers: document.getElementById('ratio4-layers'),
+      ratio128Layers: document.getElementById('ratio128-layers'),
+      kvPrecision: document.getElementById('kv-precision'),
+      indexerPrecision: document.getElementById('indexer-precision'),
+      includeDraftKv: document.getElementById('include-draft-kv'),
     };
 
     // Initialize Model Selection
@@ -469,17 +552,82 @@
 
       vendorSelect.addEventListener('change', updatePresets);
       
+      function applyPresetConfig(presetId) {
+        const vendor = vendorSelect.value;
+        const models = BUILTIN_MODELS[vendor] || [];
+        const model = models.find(m => m.id === presetId);
+        if (!model) return;
+
+        // Apply vLLM config
+        if (model.vllmConfig) {
+          const cfg = model.vllmConfig;
+          if (cfg.maxModelLen !== undefined) inputs.maxModelLen.value = cfg.maxModelLen;
+          if (cfg.maxNumSeqs !== undefined) inputs.maxNumSeqs.value = cfg.maxNumSeqs;
+          if (cfg.cudaGraphs !== undefined) inputs.cudaGraphs.value = String(cfg.cudaGraphs);
+          if (cfg.quantMethod !== undefined) quantInputs.method.value = cfg.quantMethod;
+        }
+
+        // Apply model architecture params (hidden inputs)
+        if (model.modelParams) {
+          const mp = model.modelParams;
+          if (mp.weights !== undefined) inputs.modelWeights.value = mp.weights;
+          if (mp.layers !== undefined) inputs.numLayers.value = mp.layers;
+          if (mp.kvHeads !== undefined) inputs.kvHeads.value = mp.kvHeads;
+          if (mp.headDim !== undefined) inputs.headDim.value = mp.headDim;
+          if (mp.attnHeads !== undefined) inputs.attnHeads.value = mp.attnHeads;
+          if (mp.attentionType !== undefined) {
+            inputs.attentionType.value = mp.attentionType;
+            detectedAttentionType = mp.attentionType;
+            // Reset hybrid flag when not hybrid
+            inputs.hybridEnabled.value = mp.attentionType === 'hybrid' ? '1' : '0';
+          } else {
+            inputs.attentionType.value = 'gqa';
+            detectedAttentionType = 'gqa';
+            inputs.hybridEnabled.value = '0';
+          }
+          if (mp.kvLoraRank !== undefined) {
+            inputs.kvLoraRank.value = mp.kvLoraRank;
+            extractedKvLoraRank = mp.kvLoraRank;
+          } else {
+            extractedKvLoraRank = null;
+          }
+          if (mp.qkRopeHeadDim !== undefined) {
+            inputs.qkRopeHeadDim.value = mp.qkRopeHeadDim;
+          }
+          if (mp.moeEnabled !== undefined) {
+            inputs.moeEnabled.value = String(mp.moeEnabled);
+            if (mp.numExperts !== undefined) inputs.numExperts.value = mp.numExperts;
+            if (mp.topkExperts !== undefined) inputs.topkExperts.value = mp.topkExperts;
+            if (mp.expertParamsRatio !== undefined) inputs.expertParamsRatio.value = mp.expertParamsRatio;
+            if (mp.sharedExperts !== undefined) inputs.sharedExperts.value = mp.sharedExperts;
+          } else {
+            inputs.moeEnabled.value = '0';
+          }
+          // Apply hybrid attention params if present
+          if (mp.hybridActiveLayers !== undefined) inputs.activeLayers.value = mp.hybridActiveLayers;
+          if (mp.hybridSlidingWindow !== undefined) inputs.slidingWindow.value = mp.hybridSlidingWindow;
+          if (mp.hybridSlidingHeadDim !== undefined) inputs.slidingHeadDim.value = mp.hybridSlidingHeadDim;
+          if (mp.hybridCompressedHeadDim !== undefined) inputs.compressedHeadDim.value = mp.hybridCompressedHeadDim;
+          if (mp.hybridIndexHeadDim !== undefined) inputs.indexHeadDim.value = mp.hybridIndexHeadDim;
+          if (mp.hybridRatio4Layers !== undefined) inputs.ratio4Layers.value = mp.hybridRatio4Layers;
+          if (mp.hybridRatio128Layers !== undefined) inputs.ratio128Layers.value = mp.hybridRatio128Layers;
+          if (mp.hybridKvPrecisionBytes !== undefined) inputs.kvPrecision.value = mp.hybridKvPrecisionBytes;
+          if (mp.hybridIndexerPrecisionBytes !== undefined) inputs.indexerPrecision.value = mp.hybridIndexerPrecisionBytes;
+        }
+      }
+
       presetSelect.addEventListener('change', () => {
         hfInput.value = presetSelect.value;
+        applyPresetConfig(presetSelect.value);
+        calculate();
       });
 
       // Initial populate
       updatePresets();
+      if (presetSelect.value) applyPresetConfig(presetSelect.value);
     }
 
-    initModelSelection();
-
-    // Attention type detection state
+    // Attention type detection state (must be declared before initModelSelection)
     let detectedAttentionType = null;
     let extractedKvLoraRank = null;
     let fetchedModelId = null;
@@ -487,6 +635,8 @@
     let fetchedCheckpointBytes = null;
     let fetchedCheckpointSource = null;
     let detectedQuantMethod = 'none';
+
+    initModelSelection();
 
     const quantInputs = {
       method: document.getElementById('quant-method')
@@ -814,6 +964,10 @@
       'phi-3-mini': 3.8,
       'command-r': 35,
       'command-r-plus': 104,
+      'kimi-k2.6': 1100,
+      'kimi-k2.7': 1100,
+      'glm-5.1': 754,
+      'glm-5.2': 753,
     };
 
     function estimateModelParamsFromConfig(config) {
@@ -1093,11 +1247,16 @@
         }
       }
 
-      // Detect MLA from architecture names
+      // Detect MLA/Hybrid from architecture names
       if (!result.attentionType && config?.architectures) {
         for (const arch of config.architectures) {
           const archLower = arch.toLowerCase();
-          if (/deepseekv[234]forcausallm/.test(archLower)) {
+          if (/deepseekv4forcausallm/.test(archLower)) {
+            result.attentionType = 'hybrid';
+            result.isHybrid = true;
+            break;
+          }
+          if (/deepseekv[23]forcausallm/.test(archLower)) {
             result.attentionType = 'mla';
             break;
           }
@@ -1105,7 +1264,21 @@
             result.attentionType = 'mla';
             break;
           }
+          if (archLower.includes('glmmoedsa')) {
+            result.attentionType = 'mla';
+            break;
+          }
         }
+      }
+
+      // Extract Hybrid parameters if detected
+      if (result.attentionType === 'hybrid' || result.isHybrid) {
+        result.isHybrid = true;
+        result.slidingWindow = config?.sliding_window || 4096;
+        result.activeLayers = config?.num_hidden_layers || config?.num_layers || 61;
+        result.compressedHeadDim = config?.compressed_head_dim || 512;
+        result.indexHeadDim = config?.index_head_dim || 128;
+        result.slidingHeadDim = config?.sliding_head_dim || 16;
       }
 
       // Extract kv_lora_rank for MLA
@@ -1131,6 +1304,42 @@
         }
       }
 
+      // Extract MoE parameters from config
+      const nRoutedExperts = config?.n_routed_experts || config?.num_experts || 0;
+      const nSharedExperts = config?.n_shared_experts || 0;
+      const topk = config?.num_experts_per_tok || config?.topk || config?.top_k || 0;
+      const moeIntermediateSize = config?.moe_intermediate_size || config?.intermediate_size;
+      const firstKDenseReplace = config?.first_k_dense_replace || 0;
+
+      if (nRoutedExperts > 0) {
+        result.isMoe = true;
+        result.nRoutedExperts = nRoutedExperts;
+        result.nSharedExperts = nSharedExperts;
+        result.topk = topk;
+        result.moeIntermediateSize = moeIntermediateSize;
+        result.firstKDenseReplace = firstKDenseReplace;
+
+        // Estimate expert parameter ratio
+        // For DeepSeek-style MoE: dense layers before first_k_dense_replace, then MoE
+        if (result.numLayers && moeIntermediateSize && result.hiddenSize) {
+          const denseLayers = firstKDenseReplace;
+          const moeLayers = result.numLayers - denseLayers;
+          const expertParamsPerLayer = result.hiddenSize * moeIntermediateSize * 3 * nRoutedExperts;
+          const sharedExpertParamsPerLayer = nSharedExperts > 0 ? result.hiddenSize * moeIntermediateSize * 3 * nSharedExperts : 0;
+          const denseParamsPerLayer = result.hiddenSize * moeIntermediateSize * 3;
+          const totalMoeParams = moeLayers * (expertParamsPerLayer + sharedExpertParamsPerLayer);
+          const totalDenseParams = denseLayers * denseParamsPerLayer;
+          const totalFfnParams = totalMoeParams + totalDenseParams;
+          // Expert ratio is approximate: MoE FFN params / total params (excluding attention and embeddings)
+          result.expertParamsRatio = totalFfnParams > 0 ? totalMoeParams / totalFfnParams : 0.60;
+        } else {
+          result.expertParamsRatio = 0.60; // Default for known MoE models
+        }
+      } else {
+        result.isMoe = false;
+        result.expertParamsRatio = 0;
+      }
+
       return result;
     }
 
@@ -1152,41 +1361,55 @@
         </div>
         <div class="model-info-grid">
           <div class="model-info-item">
-<span class="label">架构</span>
-             <span class="value">${modelConfig.architecture || '未知'}</span>
-           </div>
-           <div class="model-info-item">
-             <span class="label">层数</span>
-             <span class="value">${modelConfig.numLayers || '?'}</span>
-           </div>
-           <div class="model-info-item">
-             <span class="label">KV Heads</span>
-             <span class="value">${modelConfig.kvHeads || '?'}</span>
-           </div>
-           <div class="model-info-item">
-             <span class="label">注意力头</span>
-             <span class="value">${modelConfig.attnHeads || '?'}</span>
-           </div>
-           <div class="model-info-item">
+            <span class="label">架构</span>
+            <span class="value">${modelConfig.architecture || '未知'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">注意力架构</span>
+            <span class="value">${modelConfig.attentionType ? modelConfig.attentionType.toUpperCase() : '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">层数</span>
+            <span class="value">${modelConfig.numLayers || '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">KV Heads</span>
+            <span class="value">${modelConfig.kvHeads || '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">注意力头</span>
+            <span class="value">${modelConfig.attnHeads || '?'}</span>
+          </div>
+          <div class="model-info-item">
             <span class="label">Head 维度</span>
-             <span class="value">${modelConfig.headDim || '?'}</span>
-           </div>
-           <div class="model-info-item">
-             <span class="label">隐藏维度</span>
-             <span class="value">${modelConfig.hiddenSize || '?'}</span>
-           </div>
-           <div class="model-info-item">
-             <span class="label">最大上下文</span>
-             <span class="value">${modelConfig.maxContext ? formatNumber(modelConfig.maxContext) : '?'}</span>
-           </div>
-<div class="model-info-item">
-              <span class="label">参数量</span>
-              <span class="value">${modelConfig.paramsB ? modelConfig.paramsB.toFixed(1) + ' B' : '?'}${modelConfig.paramsSource ? ` <span style="font-size:0.7em;color:var(--text-muted);">(${modelConfig.paramsSource})</span>` : ''}</span>
-            </div>
-            <div class="model-info-item">
-              <span class="label">Checkpoint</span>
-              <span class="value">${modelConfig.checkpointBytes ? formatBytes(modelConfig.checkpointBytes / 1e9) : '?'}</span>
-            </div>
+            <span class="value">${modelConfig.headDim || '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">隐藏维度</span>
+            <span class="value">${modelConfig.hiddenSize || '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">最大上下文</span>
+            <span class="value">${modelConfig.maxContext ? formatNumber(modelConfig.maxContext) : '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">参数量</span>
+            <span class="value">${modelConfig.paramsB ? modelConfig.paramsB.toFixed(1) + ' B' : '?'}${modelConfig.paramsSource ? ` <span style="font-size:0.7em;color:var(--text-muted);">(${modelConfig.paramsSource})</span>` : ''}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">Checkpoint</span>
+            <span class="value">${modelConfig.checkpointBytes ? formatBytes(modelConfig.checkpointBytes / 1e9) : '?'}</span>
+          </div>
+          ${modelConfig.isMoe ? `
+          <div class="model-info-item">
+            <span class="label">专家总数</span>
+            <span class="value">${modelConfig.nRoutedExperts || '?'}</span>
+          </div>
+          <div class="model-info-item">
+            <span class="label">Top-K</span>
+            <span class="value">${modelConfig.topk || '?'}</span>
+          </div>
+          ` : ''}
         </div>
         <div class="model-info-tags">
           ${modelConfig.architecture ? `<span class="model-tag arch">${modelConfig.architecture}</span>` : ''}
@@ -1261,6 +1484,28 @@
 
         console.log(`Detected attention type: ${modelConfig.attentionType}`,
                     modelConfig.kvLoraRank ? `(kv_lora_rank=${modelConfig.kvLoraRank})` : '');
+      }
+
+      // Apply MoE parameters if detected
+      if (modelConfig.isMoe) {
+        inputs.moeEnabled.value = '1';
+        if (modelConfig.nRoutedExperts) inputs.numExperts.value = modelConfig.nRoutedExperts + (modelConfig.nSharedExperts || 0);
+        if (modelConfig.topk) inputs.topkExperts.value = modelConfig.topk;
+        if (modelConfig.expertParamsRatio !== undefined) inputs.expertParamsRatio.value = modelConfig.expertParamsRatio.toFixed(2);
+        if (modelConfig.nSharedExperts) inputs.sharedExperts.value = modelConfig.nSharedExperts;
+      } else {
+        inputs.moeEnabled.value = '0';
+      }
+
+      // Apply Hybrid parameters if detected (DeepSeek V4 style)
+      if (modelConfig.attentionType === 'hybrid' || modelConfig.isHybrid) {
+        inputs.hybridEnabled.value = '1';
+        inputs.attentionType.value = 'hybrid';
+        if (modelConfig.slidingWindow) inputs.slidingWindow.value = modelConfig.slidingWindow;
+        if (modelConfig.activeLayers) inputs.activeLayers.value = modelConfig.activeLayers;
+        if (modelConfig.compressedHeadDim) inputs.compressedHeadDim.value = modelConfig.compressedHeadDim;
+        if (modelConfig.indexHeadDim) inputs.indexHeadDim.value = modelConfig.indexHeadDim;
+        if (modelConfig.slidingHeadDim) inputs.slidingHeadDim.value = modelConfig.slidingHeadDim;
       }
 
       // Recalculate
@@ -1420,8 +1665,9 @@ const missingFields = [];
       }
     });
 
-    // Add input listeners
+    // Add input listeners for visible inputs only
     Object.values(inputs).forEach(input => {
+      if (!input) return;
       input.addEventListener('input', calculate);
       input.addEventListener('change', calculate);
     });
@@ -1431,51 +1677,34 @@ const missingFields = [];
       input.addEventListener('change', calculate);
     });
 
-    // Update attention type UI based on selection and detection
-    function updateAttentionTypeUI() {
-      const selector = inputs.attentionType;
-      const hint = document.getElementById('attention-type-detected');
-      const kvLoraRankGroup = document.getElementById('kv-lora-rank-group');
-      const selectedType = selector.value;
-      
-      if (selectedType === 'auto') {
-        // Show detected type or default
-        if (detectedAttentionType) {
-          const modelName = hfModelId.value.split('/').pop() || 'model';
-          hint.textContent = `检测到：${detectedAttentionType.toUpperCase()} (${modelName})`;
-          hint.className = 'hint success';
-          
-          // Show kv_lora_rank input if MLA detected
-          if (detectedAttentionType === 'mla') {
-            kvLoraRankGroup.style.display = 'block';
-            if (extractedKvLoraRank) {
-              // Only update if value hasn't been manually changed (is default or empty)
-              const currentValue = parseInt(inputs.kvLoraRank.value, 10);
-              if (!currentValue || currentValue === 1536) {
-                inputs.kvLoraRank.value = extractedKvLoraRank;
-              }
-              hint.textContent += `, latent_dim=${extractedKvLoraRank}`;
-            }
-          } else {
-            kvLoraRankGroup.style.display = 'none';
-          }
-        } else {
-          hint.textContent = '无法检测，使用默认：GQA';
-          hint.className = 'hint warning';
-          kvLoraRankGroup.style.display = 'none';
-        }
+    // Total GPU update
+    // When EP is enabled: EP_SIZE = DP_SIZE (experts sharded across all TP×DP GPUs)
+    // Expert weights are sharded by TP × EP = TP × DP = total GPUs in the role
+    function updateTotalGpus() {
+      const tp = Math.max(1, toInt(inputs.numGpus.value, 1));
+      const dp = Math.max(1, toInt(inputs.dpSize.value, 1));
+      const epEnabled = inputs.epEnabled.value === '1';
+      const ep = epEnabled ? dp : 1;
+      const total = tp * dp;  // Total GPUs = TP × DP (EP doesn't multiply)
+      inputs.totalGpusDisplay.value = total;
+      const hint = document.getElementById('total-gpus-hint');
+      if (epEnabled) {
+        hint.textContent = `${tp} TP × ${dp} DP = ${total} 卡/Role  (EP=${ep}=DP, 专家按 ${tp * ep} 卡分摊)`;
       } else {
-        // Manual selection
-        hint.textContent = `手动设置为：${selectedType.toUpperCase()}`;
-        hint.className = 'hint';
-        
-        // Show kv_lora_rank for MLA
-        if (selectedType === 'mla') {
-          kvLoraRankGroup.style.display = 'block';
-        } else {
-          kvLoraRankGroup.style.display = 'none';
-        }
+        hint.textContent = `${tp} TP × ${dp} DP = ${total} 卡/Role  (EP=1, 专家按 ${tp} 卡分摊)`;
       }
+    }
+
+    inputs.numGpus.addEventListener('input', updateTotalGpus);
+    inputs.epEnabled.addEventListener('change', updateTotalGpus);
+    inputs.dpSize.addEventListener('input', updateTotalGpus);
+
+    // Update attention type UI based on selection and detection
+    // (Simplified since attention type is now auto-detected and hidden)
+    function updateAttentionTypeUI() {
+      // Attention type is now fully auto-detected from HF config
+      // Hidden fields are updated automatically in applyModelConfig
+      // No visible UI to update
     }
 
     // Get effective attention type (considering auto-detect)
@@ -1557,9 +1786,12 @@ const missingFields = [];
       // Note: vLLM reports in GiB (binary), where 1 GiB = 1,073,741,824 bytes.
       // Conversion: GB (decimal) × 0.931323 ≈ GiB (binary)
 
-// Get values
+      // Get values
       const gpuVram = Math.max(0, toNumber(inputs.gpuVram.value));  // GB (decimal)
       const numGpus = Math.max(1, toInt(inputs.numGpus.value, 1));
+      const dpSize = Math.max(1, toInt(inputs.dpSize.value, 1));
+      const epEnabled = inputs.epEnabled.value === '1';
+      const epSize = epEnabled ? dpSize : 1;  // EP = DP when enabled
       const gpuUtilization = Math.min(1, Math.max(0, toNumber(inputs.gpuUtilization.value)));
       const baseParams = Math.max(0, toNumber(inputs.modelWeights.value));  // 参数量（B，十亿）
       const quantMethod = quantInputs.method.value;
@@ -1571,6 +1803,17 @@ const missingFields = [];
       const attnHeadsInput = Math.max(1, toInt(inputs.attnHeads.value, kvHeads));
       const maxModelLen = Math.max(1, toInt(inputs.maxModelLen.value, 1));
       const maxNumSeqs = Math.max(1, toInt(inputs.maxNumSeqs.value, 1));
+
+      // MoE settings
+      const moeEnabled = inputs.moeEnabled.value === '1';
+      const expertParamsRatio = moeEnabled ? Math.min(1, Math.max(0, toNumber(inputs.expertParamsRatio.value))) : 0;
+      const numExperts = moeEnabled ? Math.max(1, toInt(inputs.numExperts.value, 1)) : 1;
+      const topkExperts = moeEnabled ? Math.max(1, toInt(inputs.topkExperts.value, 1)) : 1;
+      const expertSharding = moeEnabled ? inputs.expertSharding.value : 'ep';
+      const sharedExpertsCount = moeEnabled ? Math.max(0, toInt(inputs.sharedExperts.value, 0)) : 0;
+
+      // Update total GPU display
+      updateTotalGpus();
       const maxBatchedTokens = Math.max(1, toInt(inputs.maxBatchedTokens.value, 1));
       const kvCacheDtypeBytes = Math.max(1, toInt(inputs.kvCacheDtype.value, 2));
       const activationDtypeBytes = Math.max(1, toInt(inputs.activationDtype.value, 2));
@@ -1584,7 +1827,38 @@ const missingFields = [];
       const effectiveDetectedQuantMethod = normalizeQuantMethod(detectedQuantMethod);
       const useCheckpointWeights = Number.isFinite(fetchedCheckpointBytes) && fetchedCheckpointBytes > 0 && quantMethod === effectiveDetectedQuantMethod;
       const modelWeights = useCheckpointWeights ? (fetchedCheckpointBytes / 1e9) : estimatedModelWeights;
-      const weightsPerGpu = modelWeights / numGpus;
+
+      // ===== MoE-aware weight sharding =====
+      // Dense (non-expert) params: always sharded by TP only
+      // Expert params: sharded by TP × EP (or TP only, depending on expertSharding mode)
+      let weightsPerGpu, denseWeightsPerGpu, expertWeightsPerGpu;
+      let denseParamsGB, expertParamsGB;
+
+      if (moeEnabled && expertParamsRatio > 0) {
+        denseParamsGB = modelWeights * (1 - expertParamsRatio);
+        expertParamsGB = modelWeights * expertParamsRatio;
+
+        // Dense params: TP sharded
+        denseWeightsPerGpu = denseParamsGB / numGpus;
+
+        // Expert params: sharded by TP × EP (default EP mode) or TP only (TP mode)
+        if (expertSharding === 'ep') {
+          // EP mode: each GPU stores 1/EP of experts, each expert is TP-sharded
+          expertWeightsPerGpu = expertParamsGB / (numGpus * epSize);
+        } else {
+          // TP mode: each expert is TP-sharded, all experts on each GPU
+          expertWeightsPerGpu = expertParamsGB / numGpus;
+        }
+
+        weightsPerGpu = denseWeightsPerGpu + expertWeightsPerGpu;
+      } else {
+        // Dense model: all params TP-sharded
+        denseParamsGB = modelWeights;
+        expertParamsGB = 0;
+        denseWeightsPerGpu = modelWeights / numGpus;
+        expertWeightsPerGpu = 0;
+        weightsPerGpu = denseWeightsPerGpu;
+      }
       const attnHeads = Math.max(attnHeadsInput, kvHeads);
       if (attnHeadsInput !== attnHeads) {
         inputs.attnHeads.value = attnHeads;
@@ -1609,22 +1883,108 @@ const missingFields = [];
       // KV cache calculation based on attention architecture
       const attentionType = getEffectiveAttentionType();
       let bytesPerTokenPerLayer;
+      let bytesPerToken = 0;
+      let bytesPerTokenKB = 0;
+      let hybridKvBytes = 0;      // sliding + compressed KV bytes
+      let hybridIndexerBytes = 0; // indexer cache bytes
+      let hybridTotalBytes = 0;   // total hybrid cache bytes
+      let hybridDetails = null;   // calculation details for display
 
-      if (attentionType === 'mla') {
+      if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        // ===== DeepSeek V4 Hybrid Sparse Attention =====
+        // Formula from kvcache.ai:
+        // sliding_kv_bytes = active_layers × sliding_window × head_dim × kv_precision_bytes
+        // compressed_kv_bytes = sum over ratio>0 layers: floor(tokens / compress_ratio) × head_dim × kv_precision_bytes
+        // kv_bytes = sliding_kv_bytes + compressed_kv_bytes
+        // indexer_bytes = ratio4_layers × floor(tokens / 4) × index_head_dim × indexer_precision_bytes
+        // total_bytes = sequences × (kv_bytes + indexer_bytes)
+
+        const hybridActiveLayers = Math.max(1, toInt(inputs.activeLayers.value, 1));
+        const hybridSlidingWindow = Math.max(1, toInt(inputs.slidingWindow.value, 4096));
+        const hybridSlidingHeadDim = Math.max(1, toInt(inputs.slidingHeadDim.value, 16));
+        const hybridCompressedHeadDim = Math.max(1, toInt(inputs.compressedHeadDim.value, 512));
+        const hybridIndexHeadDim = Math.max(1, toInt(inputs.indexHeadDim.value, 128));
+        const hybridRatio4Layers = Math.max(0, toInt(inputs.ratio4Layers.value, 30));
+        const hybridRatio128Layers = Math.max(0, toInt(inputs.ratio128Layers.value, 31));
+        const hybridKvPrecisionBytes = kvCacheDtypeBytes;
+        const hybridIndexerPrecisionBytes = toNumber(inputs.indexerPrecision.value, 0.5);
+        const hybridIncludeDraft = inputs.includeDraftKv.value === '1';
+        const hybridDraftLayers = hybridIncludeDraft ? (toInt(inputs.numLayers.value, 61) - hybridActiveLayers) : 0;
+
+        // tokens per sequence
+        const tokensPerSeq = maxModelLen;
+        const seqs = maxNumSeqs;
+
+        // 1. Sliding window KV
+        const slidingKvBytes = hybridActiveLayers * hybridSlidingWindow * hybridSlidingHeadDim * hybridKvPrecisionBytes;
+
+        // 2. Compressed KV (sum over ratio>0 layers)
+        const ratio4Tokens = Math.floor(tokensPerSeq / 4);
+        const ratio128Tokens = Math.floor(tokensPerSeq / 128);
+        const compressedKvBytes = (
+          hybridRatio4Layers * ratio4Tokens * hybridCompressedHeadDim * hybridKvPrecisionBytes +
+          hybridRatio128Layers * ratio128Tokens * hybridCompressedHeadDim * hybridKvPrecisionBytes
+        );
+
+        // 3. Total KV bytes (per sequence)
+        const kvBytes = slidingKvBytes + compressedKvBytes;
+
+        // 4. Indexer cache bytes (per sequence)
+        const indexerBytes = hybridRatio4Layers * ratio4Tokens * hybridIndexHeadDim * hybridIndexerPrecisionBytes;
+
+        // 5. Total cache bytes (all sequences)
+        hybridTotalBytes = seqs * (kvBytes + indexerBytes);
+        hybridKvBytes = seqs * kvBytes;
+        hybridIndexerBytes = seqs * indexerBytes;
+
+        // Per-token size (for display)
+        bytesPerToken = hybridTotalBytes / (tokensPerSeq * seqs);
+        bytesPerTokenKB = bytesPerToken / 1024;
+
+        // Store details for formula display
+        hybridDetails = {
+          activeLayers: hybridActiveLayers,
+          slidingWindow: hybridSlidingWindow,
+          slidingHeadDim: hybridSlidingHeadDim,
+          compressedHeadDim: hybridCompressedHeadDim,
+          kvPrecisionBytes: hybridKvPrecisionBytes,
+          ratio4Layers: hybridRatio4Layers,
+          ratio128Layers: hybridRatio128Layers,
+          ratio4Tokens: ratio4Tokens,
+          ratio128Tokens: ratio128Tokens,
+          indexHeadDim: hybridIndexHeadDim,
+          indexerPrecisionBytes: hybridIndexerPrecisionBytes,
+          slidingKvBytes: slidingKvBytes,
+          compressedKvBytes: compressedKvBytes,
+          kvBytes: kvBytes,
+          indexerBytes: indexerBytes,
+          totalBytes: hybridTotalBytes,
+          tokensPerSeq: tokensPerSeq,
+          seqs: seqs,
+          draftLayers: hybridDraftLayers
+        };
+
+      } else if (attentionType === 'mla') {
         // MLA (Multi-head Latent Attention): Store compressed latent vectors
-        // Per token per layer: 2 (K+V) * kv_lora_rank * dtype_bytes
+        // For GLM-5.2 style MLA: latent_kv_dim = kv_lora_rank + qk_rope_head_dim
+        // Per token per layer: latent_kv_dim * dtype_bytes
+        // Note: MLA stores a single compressed c_KV vector, not separate K and V
         // Note: MLA doesn't use tensor parallelism for KV cache (latent dim is not split)
         const kvLoraRank = getEffectiveKvLoraRank();
-        bytesPerTokenPerLayer = 2 * kvLoraRank * kvCacheDtypeBytes;
+        const qkRopeHeadDim = toInt(inputs.qkRopeHeadDim.value, 64);
+        const latentKvDim = kvLoraRank + qkRopeHeadDim;
+        bytesPerTokenPerLayer = latentKvDim * kvCacheDtypeBytes;
+        bytesPerToken = bytesPerTokenPerLayer * numLayers;
+        bytesPerTokenKB = bytesPerToken / 1024;
       } else {
         // GQA/MHA: Traditional multi-head attention
         // Per token per layer: 2 (K+V) * kvHeads * headDim * dtype_bytes
         // With TP, KV heads are split across GPUs
         const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
         bytesPerTokenPerLayer = 2 * kvHeadsPerGpu * headDim * kvCacheDtypeBytes;
+        bytesPerToken = bytesPerTokenPerLayer * numLayers;
+        bytesPerTokenKB = bytesPerToken / 1024;
       }
-      const bytesPerToken = bytesPerTokenPerLayer * numLayers;
-      const bytesPerTokenKB = bytesPerToken / 1024;
       
       // Available for KV cache
       const fixedOverhead = weightsPerGpu + cudaGraphsSize + totalOverhead;
@@ -1632,15 +1992,23 @@ const missingFields = [];
       const kvAvailableBytes = kvAvailable * 1e9; // GB to bytes (decimal)
 
       // Max tokens that can fit in KV cache
-      const maxTokensInCache = Math.floor(kvAvailableBytes / bytesPerToken);
+      let maxTokensInCache, maxContextSingle, avgContextAll, recommendedSeqs;
 
-      // Effective limits
-      const maxContextSingle = Math.min(maxModelLen, maxTokensInCache);
-      const avgContextAll = Math.floor(maxTokensInCache / maxNumSeqs);
-
-      // Recommended seqs (targeting ~32K avg context)
-      const targetAvgContext = 32768;
-      const recommendedSeqs = Math.max(1, Math.floor(maxTokensInCache / targetAvgContext));
+      if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        // Hybrid mode: max tokens is based on available KV space vs per-token cost
+        // For simplicity, use average per-token cost
+        maxTokensInCache = bytesPerToken > 0 ? Math.floor(kvAvailableBytes / bytesPerToken) : 0;
+        maxContextSingle = Math.min(maxModelLen, maxTokensInCache);
+        avgContextAll = Math.floor(maxTokensInCache / maxNumSeqs);
+        const targetAvgContext = 32768;
+        recommendedSeqs = Math.max(1, Math.floor(maxTokensInCache / targetAvgContext));
+      } else {
+        maxTokensInCache = Math.floor(kvAvailableBytes / bytesPerToken);
+        maxContextSingle = Math.min(maxModelLen, maxTokensInCache);
+        avgContextAll = Math.floor(maxTokensInCache / maxNumSeqs);
+        const targetAvgContext = 32768;
+        recommendedSeqs = Math.max(1, Math.floor(maxTokensInCache / targetAvgContext));
+      }
 
       // vLLM allocates the FULL KV cache pool at startup, not just estimated active usage.
       // This matches what nvidia-smi shows in real deployments.
@@ -1650,47 +2018,6 @@ const missingFields = [];
       const totalUsage = weightsPerGpu + kvCacheAllocated + cudaGraphsSize + totalOverhead;
       const usagePercent = gpuVram > 0 ? (totalUsage / gpuVram) * 100 : 0;
       const freeSpace = Math.max(0, gpuVram - totalUsage);
-
-      // Update breakdown table
-      const breakdownBody = document.getElementById('breakdown-body');
-      breakdownBody.innerHTML = `
-        <tr>
-          <td>模型权重 (${quantLabel})</td>
-          <td>${formatBytes(weightsPerGpu)}</td>
-        </tr>
-        <tr>
-          <td style="color: var(--text-muted); font-size: 0.8em;">&nbsp;&nbsp;${useCheckpointWeights ? `来源：${fetchedCheckpointSource || 'HF checkpoint'}` : `参数量：${baseParams.toFixed(1)}B × ${estimatedBytesPerParam.toFixed(4)} bytes`}</td>
-          <td></td>
-        </tr>
-        <tr>
-          <td>KV Cache 池（可分配）</td>
-          <td>${formatBytes(kvCacheAllocated)}</td>
-        </tr>
-        <tr>
-          <td>CUDA Graphs</td>
-          <td>${formatBytes(cudaGraphsSize)}</td>
-        </tr>
-        <tr>
-          <td>开销（激活）</td>
-          <td>${formatBytes(overheadEstimate)}</td>
-        </tr>
-        <tr>
-          <td>开销（额外）</td>
-          <td>${formatBytes(overheadPadding)}</td>
-        </tr>
-        <tr class="total-row">
-          <td>总分配</td>
-          <td>${formatBytes(totalUsage)}</td>
-        </tr>
-        <tr>
-          <td>可用（${(gpuUtilization * 100).toFixed(0)}% × ${gpuVram}GB）</td>
-          <td>${formatBytes(availableVram)}</td>
-        </tr>
-        <tr>
-          <td>剩余空间</td>
-          <td>${formatBytes(Math.max(0, availableVram - totalUsage))}</td>
-        </tr>
-      `;
 
       // Update memory bar
       const memoryBar = document.getElementById('memory-bar');
@@ -1711,22 +2038,22 @@ const missingFields = [];
       document.getElementById('memory-percent').textContent = usagePercent.toFixed(1) + '%';
 
       // Calculate KV cache comparison
-      const requiredTokens = maxModelLen * maxNumSeqs;
-      const requiredKvBytes = requiredTokens * bytesPerToken;
-      const requiredKvGB = requiredKvBytes / 1e9;
-      const kvUtilization = maxTokensInCache > 0 ? (requiredTokens / maxTokensInCache) * 100 : 0;
+      let requiredTokens, requiredKvBytes, requiredKvGB, kvUtilization;
+
+      if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        requiredTokens = maxModelLen * maxNumSeqs;
+        requiredKvBytes = hybridTotalBytes;
+        requiredKvGB = requiredKvBytes / 1e9;
+        // For hybrid, utilization is based on total cache vs available
+        kvUtilization = kvAvailableBytes > 0 ? (requiredKvGB / kvAvailable) * 100 : 0;
+      } else {
+        requiredTokens = maxModelLen * maxNumSeqs;
+        requiredKvBytes = requiredTokens * bytesPerToken;
+        requiredKvGB = requiredKvBytes / 1e9;
+        kvUtilization = maxTokensInCache > 0 ? (requiredTokens / maxTokensInCache) * 100 : 0;
+      }
 
       
-      // === Update RIGHT PANEL: model params summary ===
-      (function updateParamsSummary() {
-        var el;
-        el = document.getElementById('qs-quant-method');  if (el) el.textContent = quantLabel;
-        el = document.getElementById('qs-bytes-per-param'); if (el) el.textContent = estimatedBytesPerParam.toFixed(4) + ' bytes';
-        el = document.getElementById('qs-total-weight');  if (el) el.textContent = formatBytes(modelWeights);
-        el = document.getElementById('qs-weight-per-gpu'); if (el) el.textContent = formatBytes(weightsPerGpu);
-        el = document.getElementById('qs-attn-type');     if (el) el.textContent = attentionType.toUpperCase();
-      })();
-
       // === Update RIGHT PANEL: KV total hero ===
       (function updateKvHero() {
         var kvTD = document.getElementById('kv-total-display');
@@ -1734,9 +2061,15 @@ const missingFields = [];
         if (kvTD) kvTD.textContent = formatBytes(requiredKvGB);
         if (kvTF) {
           var tkns = maxModelLen * maxNumSeqs;
-          if (attentionType === 'mla') {
+          if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+            if (hybridDetails) {
+              kvTF.textContent = 'Hybrid: sliding(' + formatBytes(hybridDetails.slidingKvBytes / 1e9) + ') + compressed(' + formatBytes(hybridDetails.compressedKvBytes / 1e9) + ') + indexer(' + formatBytes(hybridDetails.indexerBytes / 1e9) + ')';
+            }
+          } else if (attentionType === 'mla') {
             var lr = getEffectiveKvLoraRank();
-            kvTF.textContent = '2(K+V) x ' + lr + ' rank x ' + kvCacheDtypeBytes + 'B x ' + numLayers + 'L x ' + formatNumber(tkns) + ' tok / ' + numGpus + ' GPUs';
+            var qkrd = toInt(inputs.qkRopeHeadDim.value, 64);
+            var lkd = lr + qkrd;
+            kvTF.textContent = lkd + ' latent_kv_dim(' + lr + '+' + qkrd + ') x ' + kvCacheDtypeBytes + 'B x ' + numLayers + 'L x ' + formatNumber(tkns) + ' tok';
           } else {
             var kh = Math.ceil(kvHeads / numGpus);
             kvTF.textContent = '2(K+V) x ' + kh + ' heads x ' + headDim + ' dim x ' + kvCacheDtypeBytes + 'B x ' + numLayers + 'L x ' + formatNumber(tkns) + ' tok';
@@ -1807,9 +2140,15 @@ if (requiredTokens > maxTokensInCache) {
       
       // Generate bytes-per-token calculation formula
       let formulaText;
-      if (attentionType === 'mla') {
+      if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        if (hybridDetails) {
+          formulaText = `计算过程：滑动 ${hybridDetails.activeLayers}L × ${hybridDetails.slidingWindow}win × ${hybridDetails.slidingHeadDim}dim × ${hybridDetails.kvPrecisionBytes}B + 压缩 ${hybridDetails.ratio4Layers}L×⌊${hybridDetails.tokensPerSeq}/4⌋×${hybridDetails.compressedHeadDim}dim + ${hybridDetails.ratio128Layers}L×⌊${hybridDetails.tokensPerSeq}/128⌋×${hybridDetails.compressedHeadDim}dim + 索引器 ${hybridDetails.ratio4Layers}L×⌊${hybridDetails.tokensPerSeq}/4⌋×${hybridDetails.indexHeadDim}dim×${hybridDetails.indexerPrecisionBytes}B`;
+        }
+      } else if (attentionType === 'mla') {
         const kvLoraRank = getEffectiveKvLoraRank();
-        formulaText = `计算过程：2(K+V) × ${kvLoraRank} kv_lora_rank × ${kvCacheDtypeBytes}B × ${numLayers}层`;
+        const qkRopeHeadDim = toInt(inputs.qkRopeHeadDim.value, 64);
+        const latentKvDim = kvLoraRank + qkRopeHeadDim;
+        formulaText = `计算过程：${latentKvDim} latent_kv_dim(${kvLoraRank}+${qkRopeHeadDim}) × ${kvCacheDtypeBytes}B × ${numLayers}层`;
       } else {
         const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
         formulaText = `计算过程：2(K+V) × ${kvHeadsPerGpu} KV_heads/GPU × ${headDim} dim × ${kvCacheDtypeBytes}B × ${numLayers}层`;
@@ -1825,20 +2164,194 @@ if (requiredTokens > maxTokensInCache) {
       const mlaIndicator = document.getElementById('mla-mode-indicator');
       if (attentionType === 'mla') {
         const kvLoraRank = getEffectiveKvLoraRank();
+        const qkRopeHeadDim = toInt(inputs.qkRopeHeadDim.value, 64);
+        const latentKvDim = kvLoraRank + qkRopeHeadDim;
         if (!mlaIndicator) {
           const indicator = document.createElement('div');
           indicator.id = 'mla-mode-indicator';
           indicator.className = 'hint';
           indicator.style.cssText = 'margin-top: 0.5rem; color: var(--accent-blue);';
-indicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：使用压缩潜在维度 (kv_lora_rank=${kvLoraRank}) 计算 KV Cache`;
+indicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：latent_kv_dim=${latentKvDim} (${kvLoraRank}+${qkRopeHeadDim})，每 token 每 layer 一个压缩向量`;
            document.getElementById('kv-available').parentElement.after(indicator);
          } else {
-           mlaIndicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：使用压缩潜在维度 (kv_lora_rank=${kvLoraRank}) 计算 KV Cache`;
+           mlaIndicator.innerHTML = `<i data-lucide="lightbulb" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> MLA 模式：latent_kv_dim=${latentKvDim} (${kvLoraRank}+${qkRopeHeadDim})，每 token 每 layer 一个压缩向量`;
           mlaIndicator.style.display = 'block';
         }
       } else if (mlaIndicator) {
         mlaIndicator.style.display = 'none';
       }
+
+      // Update DeepSeek V4 Hybrid Sparse Attention calculation section
+      const hybridCalcSection = document.getElementById('hybrid-calc-section');
+      if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        if (hybridCalcSection) hybridCalcSection.style.display = 'block';
+        if (hybridDetails) {
+          document.getElementById('hybrid-sliding-kv').textContent = formatBytes(hybridDetails.slidingKvBytes / 1e9);
+          document.getElementById('hybrid-sliding-formula').textContent =
+            `sliding_kv = active_layers(${hybridDetails.activeLayers}) × sliding_window(${hybridDetails.slidingWindow}) × sliding_head_dim(${hybridDetails.slidingHeadDim}) × kv_precision_bytes(${hybridDetails.kvPrecisionBytes}) = ${(hybridDetails.slidingKvBytes / 1e9).toFixed(6)} GB`;
+
+          document.getElementById('hybrid-compressed-kv').textContent = formatBytes(hybridDetails.compressedKvBytes / 1e9);
+          document.getElementById('hybrid-compressed-formula').textContent =
+            `compressed_kv = ratio4_layers(${hybridDetails.ratio4Layers}) × ⌊${hybridDetails.tokensPerSeq}/4⌋(${hybridDetails.ratio4Tokens}) × compressed_head_dim(${hybridDetails.compressedHeadDim}) × ${hybridDetails.kvPrecisionBytes}B + ratio128_layers(${hybridDetails.ratio128Layers}) × ⌊${hybridDetails.tokensPerSeq}/128⌋(${hybridDetails.ratio128Tokens}) × ${hybridDetails.compressedHeadDim} × ${hybridDetails.kvPrecisionBytes}B = ${(hybridDetails.compressedKvBytes / 1e9).toFixed(6)} GB`;
+
+          document.getElementById('hybrid-kv-total').textContent = formatBytes(hybridDetails.kvBytes / 1e9);
+          document.getElementById('hybrid-kv-formula').textContent =
+            `kv_bytes = sliding_kv(${formatBytes(hybridDetails.slidingKvBytes / 1e9)}) + compressed_kv(${formatBytes(hybridDetails.compressedKvBytes / 1e9)}) = ${formatBytes(hybridDetails.kvBytes / 1e9)}`;
+
+          document.getElementById('hybrid-indexer').textContent = formatBytes(hybridDetails.indexerBytes / 1e9);
+          document.getElementById('hybrid-indexer-formula').textContent =
+            `indexer_bytes = ratio4_layers(${hybridDetails.ratio4Layers}) × ⌊${hybridDetails.tokensPerSeq}/4⌋(${hybridDetails.ratio4Tokens}) × index_head_dim(${hybridDetails.indexHeadDim}) × indexer_precision_bytes(${hybridDetails.indexerPrecisionBytes}) = ${(hybridDetails.indexerBytes / 1e9).toFixed(6)} GB`;
+
+          document.getElementById('hybrid-per-seq').textContent = formatBytes((hybridDetails.kvBytes + hybridDetails.indexerBytes) / 1e9);
+          document.getElementById('hybrid-total').textContent = formatBytes(hybridDetails.totalBytes / 1e9);
+          document.getElementById('hybrid-per-token').textContent = (hybridDetails.totalBytes / (hybridDetails.tokensPerSeq * hybridDetails.seqs) / 1024).toFixed(5) + ' KiB';
+        }
+      } else {
+        if (hybridCalcSection) hybridCalcSection.style.display = 'none';
+      }
+
+      // Update breakdown table with detailed calculation steps
+      const breakdownBody = document.getElementById('breakdown-body');
+      let weightDetailRows = '';
+
+      if (moeEnabled && expertParamsRatio > 0) {
+        // MoE model: show dense + expert weight breakdown with sharding logic
+        const densePct = ((1 - expertParamsRatio) * 100).toFixed(0);
+        const expertPct = (expertParamsRatio * 100).toFixed(0);
+        const denseParamsB = baseParams * (1 - expertParamsRatio);
+        const expertParamsB = baseParams * expertParamsRatio;
+
+        weightDetailRows = `
+          <tr>
+            <td style="padding-left:1rem;color:var(--text-secondary);font-size:.85rem">
+              <div>非专家权重 (${densePct}%)</div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+                ${denseParamsB.toFixed(1)}B × ${estimatedBytesPerParam.toFixed(2)} bytes ÷ TP${numGpus} = ${formatBytes(denseWeightsPerGpu)}
+              </div>
+              <div style="font-size:.75rem;color:var(--text-muted)">
+                规则：Dense 参数按 DP${dpSize} 复制，再按 TP${numGpus} 切分
+              </div>
+            </td>
+            <td style="vertical-align:top">${formatBytes(denseWeightsPerGpu)}</td>
+          </tr>
+          <tr>
+            <td style="padding-left:1rem;color:var(--text-secondary);font-size:.85rem">
+              <div>专家权重 (${expertPct}%)</div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+                ${expertParamsB.toFixed(1)}B × ${estimatedBytesPerParam.toFixed(2)} bytes ÷ (TP${numGpus} × EP${epSize}) = ${formatBytes(expertWeightsPerGpu)}
+              </div>
+              <div style="font-size:.75rem;color:var(--text-muted)">
+                规则：Expert 参数不按 DP 复制，按 TP×EP=${numGpus * epSize} 分摊
+              </div>
+            </td>
+            <td style="vertical-align:top">${formatBytes(expertWeightsPerGpu)}</td>
+          </tr>
+        `;
+      } else {
+        // Dense model: simple TP sharding
+        weightDetailRows = `
+          <tr>
+            <td style="padding-left:1rem;color:var(--text-secondary);font-size:.85rem">
+              <div>全模型权重</div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+                ${baseParams.toFixed(1)}B × ${estimatedBytesPerParam.toFixed(2)} bytes ÷ TP${numGpus} = ${formatBytes(weightsPerGpu)}
+              </div>
+              <div style="font-size:.75rem;color:var(--text-muted)">
+                规则：全部参数按 TP${numGpus} 切分
+              </div>
+            </td>
+            <td style="vertical-align:top">${formatBytes(weightsPerGpu)}</td>
+          </tr>
+        `;
+      }
+
+      // KV Cache calculation details
+      let kvCalcDetail = '';
+      const perSeqKvGB = requiredKvGB / maxNumSeqs;
+      if (attentionType === 'mla') {
+        const kvLoraRank = getEffectiveKvLoraRank();
+        const qkRopeHeadDim = toInt(inputs.qkRopeHeadDim.value, 64);
+        const latentKvDim = kvLoraRank + qkRopeHeadDim;
+        const perSeqBytes = maxModelLen * latentKvDim * kvCacheDtypeBytes * numLayers;
+        kvCalcDetail = `
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+            seq_len(${maxModelLen}) × latent_kv_dim(${latentKvDim}=${kvLoraRank}+${qkRopeHeadDim}) × ${kvCacheDtypeBytes}B × layers(${numLayers}) = ${formatBytes(perSeqBytes / 1e9)}/请求
+          </div>
+          <div style="font-size:.75rem;color:var(--text-muted)">
+            规则：MLA 每 token 每 layer 存一个压缩向量，TP 不分割 KV
+          </div>
+        `;
+      } else if (attentionType === 'hybrid' || inputs.hybridEnabled.value === '1') {
+        kvCalcDetail = `
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+            Hybrid Sparse Attention: sliding + compressed + indexer
+          </div>
+        `;
+      } else {
+        const kvHeadsPerGpu = Math.ceil(kvHeads / numGpus);
+        const perTokenBytes = 2 * kvHeadsPerGpu * headDim * kvCacheDtypeBytes * numLayers;
+        const perSeqBytes = perTokenBytes * maxModelLen;
+        kvCalcDetail = `
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.15rem">
+            2(K+V) × ${kvHeadsPerGpu} heads/GPU × ${headDim} dim × ${kvCacheDtypeBytes}B × ${numLayers}L × ${maxModelLen}len = ${formatBytes(perSeqBytes / 1e9)}/请求
+          </div>
+          <div style="font-size:.75rem;color:var(--text-muted)">
+            规则：GQA 按 TP 分割 KV heads
+          </div>
+        `;
+      }
+
+      breakdownBody.innerHTML = `
+        <tr class="total-row">
+          <td>模型权重 (${quantLabel})</td>
+          <td>${formatBytes(weightsPerGpu)}</td>
+        </tr>
+        ${weightDetailRows}
+        <tr>
+          <td style="padding-left:1rem;color:var(--text-muted);font-size:.8rem">
+            ${useCheckpointWeights ? `来源：${fetchedCheckpointSource || 'HF checkpoint'}` : `参数量：${baseParams.toFixed(1)}B × ${estimatedBytesPerParam.toFixed(4)} bytes/参数`}
+          </td>
+          <td></td>
+        </tr>
+        <tr style="height:.5rem"><td colspan="2"></td></tr>
+        <tr class="total-row">
+          <td>KV Cache 池（可分配）</td>
+          <td>${formatBytes(kvCacheAllocated)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left:1rem;color:var(--text-secondary);font-size:.85rem">
+            <div>每请求 KV Cache</div>
+            ${kvCalcDetail}
+          </td>
+          <td style="vertical-align:top">${formatBytes(perSeqKvGB)}</td>
+        </tr>
+        <tr style="height:.5rem"><td colspan="2"></td></tr>
+        <tr>
+          <td>CUDA Graphs</td>
+          <td>${formatBytes(cudaGraphsSize)}</td>
+        </tr>
+        <tr>
+          <td>开销（激活）</td>
+          <td>${formatBytes(overheadEstimate)}</td>
+        </tr>
+        <tr>
+          <td>开销（额外）</td>
+          <td>${formatBytes(overheadPadding)}</td>
+        </tr>
+        <tr style="height:.5rem"><td colspan="2"></td></tr>
+        <tr class="total-row">
+          <td>总分配</td>
+          <td>${formatBytes(totalUsage)}</td>
+        </tr>
+        <tr>
+          <td>可用（${(gpuUtilization * 100).toFixed(0)}% × ${gpuVram}GB）</td>
+          <td>${formatBytes(availableVram)}</td>
+        </tr>
+        <tr>
+          <td>剩余空间</td>
+          <td>${formatBytes(Math.max(0, availableVram - totalUsage))}</td>
+        </tr>
+      `;
 
       // Update status
       const statusContainer = document.getElementById('status-container');
@@ -1884,7 +2397,14 @@ if (totalUsage > availableVram) {
           hfModelId: hfModelId.value,
           gpuVram: inputs.gpuVram.value,
           numGpus: inputs.numGpus.value,
-
+          epEnabled: inputs.epEnabled.value,
+          dpSize: inputs.dpSize.value,
+          moeEnabled: inputs.moeEnabled.value,
+          expertParamsRatio: inputs.expertParamsRatio.value,
+          numExperts: inputs.numExperts.value,
+          topkExperts: inputs.topkExperts.value,
+          expertSharding: inputs.expertSharding.value,
+          sharedExperts: inputs.sharedExperts.value,
           gpuUtilization: inputs.gpuUtilization.value,
           modelWeights: inputs.modelWeights.value,
           numLayers: inputs.numLayers.value,
@@ -1901,6 +2421,17 @@ if (totalUsage > availableVram) {
           quantMethod: quantInputs.method.value,
           attentionType: inputs.attentionType.value,
           kvLoraRank: inputs.kvLoraRank.value,
+          hybridEnabled: inputs.hybridEnabled.value,
+          slidingWindow: inputs.slidingWindow.value,
+          activeLayers: inputs.activeLayers.value,
+          compressedHeadDim: inputs.compressedHeadDim.value,
+          slidingHeadDim: inputs.slidingHeadDim.value,
+          indexHeadDim: inputs.indexHeadDim.value,
+          ratio4Layers: inputs.ratio4Layers.value,
+          ratio128Layers: inputs.ratio128Layers.value,
+          kvPrecision: inputs.kvPrecision.value,
+          indexerPrecision: inputs.indexerPrecision.value,
+          includeDraftKv: inputs.includeDraftKv.value,
           timestamp: Date.now()
         };
 
@@ -1961,6 +2492,14 @@ option.textContent = '在下方输入 ID';
         if (config.gpuVram) inputs.gpuVram.value = config.gpuVram;
 
         if (config.numGpus) inputs.numGpus.value = config.numGpus;
+        if (config.epEnabled) inputs.epEnabled.value = config.epEnabled;
+        if (config.dpSize) inputs.dpSize.value = config.dpSize;
+        if (config.moeEnabled) inputs.moeEnabled.value = config.moeEnabled;
+        if (config.expertParamsRatio) inputs.expertParamsRatio.value = config.expertParamsRatio;
+        if (config.numExperts) inputs.numExperts.value = config.numExperts;
+        if (config.topkExperts) inputs.topkExperts.value = config.topkExperts;
+        if (config.expertSharding) inputs.expertSharding.value = config.expertSharding;
+        if (config.sharedExperts) inputs.sharedExperts.value = config.sharedExperts;
         if (config.gpuUtilization) inputs.gpuUtilization.value = config.gpuUtilization;
         if (config.modelWeights) inputs.modelWeights.value = config.modelWeights;
         if (config.numLayers) inputs.numLayers.value = config.numLayers;
@@ -1977,6 +2516,17 @@ option.textContent = '在下方输入 ID';
         if (config.quantMethod) quantInputs.method.value = config.quantMethod;
         if (config.attentionType) inputs.attentionType.value = config.attentionType;
         if (config.kvLoraRank) inputs.kvLoraRank.value = config.kvLoraRank;
+        if (config.hybridEnabled) inputs.hybridEnabled.value = config.hybridEnabled;
+        if (config.slidingWindow) inputs.slidingWindow.value = config.slidingWindow;
+        if (config.activeLayers) inputs.activeLayers.value = config.activeLayers;
+        if (config.compressedHeadDim) inputs.compressedHeadDim.value = config.compressedHeadDim;
+        if (config.slidingHeadDim) inputs.slidingHeadDim.value = config.slidingHeadDim;
+        if (config.indexHeadDim) inputs.indexHeadDim.value = config.indexHeadDim;
+        if (config.ratio4Layers) inputs.ratio4Layers.value = config.ratio4Layers;
+        if (config.ratio128Layers) inputs.ratio128Layers.value = config.ratio128Layers;
+        if (config.kvPrecision) inputs.kvPrecision.value = config.kvPrecision;
+        if (config.indexerPrecision) inputs.indexerPrecision.value = config.indexerPrecision;
+        if (config.includeDraftKv) inputs.includeDraftKv.value = config.includeDraftKv;
 
         return true;
       } catch (error) {
@@ -1990,6 +2540,7 @@ option.textContent = '在下方输入 ID';
 
     // Auto-save on any input change
     Object.values(inputs).forEach(input => {
+      if (!input) return;
       input.addEventListener('input', debouncedConfigSave);
       input.addEventListener('change', debouncedConfigSave);
     });
@@ -2007,7 +2558,7 @@ option.textContent = '在下方输入 ID';
     const quantToggle = document.getElementById('quant-toggle');
     const quantContent = document.getElementById('quant-section-content');
     const QUANT_COLLAPSE_KEY = 'vllm_calc_quant_collapsed';
-    
+
     if (quantToggle && quantContent) {
       // Restore collapsed state from localStorage
       const isCollapsed = localStorage.getItem(QUANT_COLLAPSE_KEY) === 'true';
@@ -2015,11 +2566,31 @@ option.textContent = '在下方输入 ID';
         quantToggle.classList.add('collapsed');
         quantContent.classList.add('collapsed');
       }
-      
+
       quantToggle.addEventListener('click', () => {
         const nowCollapsed = quantContent.classList.toggle('collapsed');
         quantToggle.classList.toggle('collapsed', nowCollapsed);
         localStorage.setItem(QUANT_COLLAPSE_KEY, nowCollapsed);
+      });
+    }
+
+    // Advanced settings toggle
+    const advancedToggle = document.getElementById('advanced-toggle');
+    const advancedContent = document.getElementById('advanced-section-content');
+    const ADVANCED_COLLAPSE_KEY = 'vllm_calc_advanced_collapsed';
+
+    if (advancedToggle && advancedContent) {
+      // Default collapsed
+      const isCollapsed = localStorage.getItem(ADVANCED_COLLAPSE_KEY) !== 'false';
+      if (isCollapsed) {
+        advancedToggle.classList.add('collapsed');
+        advancedContent.classList.add('collapsed');
+      }
+
+      advancedToggle.addEventListener('click', () => {
+        const nowCollapsed = advancedContent.classList.toggle('collapsed');
+        advancedToggle.classList.toggle('collapsed', nowCollapsed);
+        localStorage.setItem(ADVANCED_COLLAPSE_KEY, !nowCollapsed);
       });
     }
 
